@@ -1,3 +1,7 @@
+# This example sets up a 3 node terraform server in a cluster
+# Ensure that all the clients that need to connect to this cluster
+# use the same `nomad_join_tag_value`
+
 module "nomad_servers" {
   source = "git::https://github.com/zerodha/nomad-cluster-setup//nomad-servers?ref=main"
 
