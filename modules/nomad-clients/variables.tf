@@ -1,22 +1,9 @@
+# Common Configuration
+
 variable "ami" {
   description = "Amazon Machine Image (AMI) ID used for deploying Nomad clients"
   type        = string
   nullable    = false
-}
-
-variable "autoscale_metrics" {
-  description = "List of autoscaling metrics to monitor for Auto Scaling Group (ASG) instances"
-  type        = list(string)
-  default = [
-    "GroupMinSize",
-    "GroupMaxSize",
-    "GroupDesiredCapacity",
-    "GroupInServiceInstances",
-    "GroupPendingInstances",
-    "GroupStandbyInstances",
-    "GroupTerminatingInstances",
-    "GroupTotalInstances",
-  ]
 }
 
 variable "client_name" {
@@ -53,17 +40,6 @@ variable "cluster_name" {
   }
 }
 
-variable "cluster_tags" {
-  description = "Key-value pairs of tags to assign to the EC2 instances spawned by the ASG"
-  type        = map(string)
-}
-
-variable "create_alb" {
-  description = "Whether to create an Application Load Balancer (ALB) or not"
-  type        = bool
-  default     = false
-}
-
 variable "default_iam_policies" {
   description = "List of IAM policies to assign to the Nomad clients"
   type        = list(string)
@@ -82,26 +58,10 @@ variable "ebs_tags" {
   default     = {}
 }
 
-variable "ec2_count" {
-  description = "Number of Nomad client EC2 instances to run"
-  type        = number
-  default     = 1
-}
-
 variable "enable_docker_plugin" {
   description = "Whether to enable the Docker plugin on the client nodes"
   type        = bool
   default     = true
-}
-
-variable "healthcheck_type" {
-  description = "Health check type for the ASG, either 'EC2' or 'ELB'"
-  type        = string
-  default     = "EC2"
-  validation {
-    condition     = var.healthcheck_type == "EC2" || var.healthcheck_type == "ELB"
-    error_message = "The healthcheck_type variable must be either 'EC2' or 'ELB'"
-  }
 }
 
 variable "iam_instance_profile" {
@@ -114,6 +74,74 @@ variable "iam_tags" {
   description = "A map of custom tags to be assigned to the IAM role"
   type        = map(string)
   default     = {}
+}
+
+variable "instance_type" {
+  description = "Instance type to use for the Nomad clients"
+  type        = string
+  default     = "c5a.large"
+}
+
+variable "route_53_resolver_address" {
+  description = "Route53 resolver address for querying DNS inside exec tasks"
+  type        = string
+  nullable    = false
+}
+
+variable "nomad_join_tag_value" {
+  description = "The value of the tag used for Nomad server auto-join"
+  type        = string
+  nullable    = false
+}
+
+variable "subnets" {
+  description = "List of subnets to assign for deploying instances"
+  type        = list(string)
+  default     = []
+}
+
+variable "vpc" {
+  description = "AWS Virtual Private Cloud (VPC) to deploy all resources in"
+  type        = string
+  nullable    = false
+}
+
+# Autoscale Group Configuration
+
+variable "autoscale_metrics" {
+  description = "List of autoscaling metrics to monitor for Auto Scaling Group (ASG) instances"
+  type        = list(string)
+  default = [
+    "GroupMinSize",
+    "GroupMaxSize",
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances",
+  ]
+}
+
+variable "cluster_tags" {
+  description = "Key-value pairs of tags to assign to the EC2 instances spawned by the ASG"
+  type        = map(string)
+}
+
+variable "ec2_count" {
+  description = "Number of Nomad client EC2 instances to run"
+  type        = number
+  default     = 1
+}
+
+variable "healthcheck_type" {
+  description = "Health check type for the ASG, either 'EC2' or 'ELB'"
+  type        = string
+  default     = "EC2"
+  validation {
+    condition     = var.healthcheck_type == "EC2" || var.healthcheck_type == "ELB"
+    error_message = "The healthcheck_type variable must be either 'EC2' or 'ELB'"
+  }
 }
 
 variable "instance_desired_count" {
@@ -134,18 +162,6 @@ variable "instance_min_count" {
   default     = 0
 }
 
-variable "instance_type" {
-  description = "Instance type to use for the Nomad clients"
-  type        = string
-  default     = "c5a.large"
-}
-
-variable "nomad_join_tag_value" {
-  description = "The value of the tag used for Nomad server auto-join"
-  type        = string
-  nullable    = false
-}
-
 variable "override_instance_types" {
   description = "List of instance types to define in the mixed_instances_policy block"
   type        = list(string)
@@ -153,26 +169,8 @@ variable "override_instance_types" {
   nullable    = true
 }
 
-variable "route_53_resolver_address" {
-  description = "Route53 resolver address for querying DNS inside exec tasks"
-  type        = string
-  nullable    = false
-}
-
-variable "subnets" {
-  description = "List of subnets to assign for deploying instances"
-  type        = list(string)
-  default     = []
-}
-
 variable "target_group_arns" {
   description = "List of target groups assigned in the ALB to connect to the ASG"
   type        = list(string)
   default     = []
-}
-
-variable "vpc" {
-  description = "AWS Virtual Private Cloud (VPC) to deploy all resources in"
-  type        = string
-  nullable    = false
 }

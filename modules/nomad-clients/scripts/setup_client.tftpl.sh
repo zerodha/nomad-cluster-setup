@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # Script to bootstrap Nomad as client node.
 
 # This script performs the following tasks:
@@ -9,131 +10,115 @@
 
 set -Eeuo pipefail
 
+declare -r SCRIPT_NAME
+SCRIPT_NAME="$(basename "$0")"
+
+declare -ag AWS_TAGS=()
+
 # Send the log output from this script to user-data.log, syslog, and the console.
-exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
 
-readonly SCRIPT_DIR="$(cd "$(dirname "$${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_NAME="$(basename "$0")"
-
+# Wrapper to log any outputs from the script to stderr
 function log {
-  local readonly level="$1"
-  local readonly message="$2"
-  local readonly timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-  >&2 echo -e "$${timestamp} [$${level}] [$${SCRIPT_NAME}] $${message}"
+  declare -r LVL="$1"
+  declare -r MSG="$2"
+  declare -r TS=$(date +"%Y-%m-%d %H:%M:%S")
+  echo >&2 -e "$TS [$LVL] [$SCRIPT_NAME] $MSG"
 }
 
-function log_info {
-  local readonly message="$1"
-  log "INFO" "$${message}"
-}
-
-function log_warn {
-  local readonly message="$1"
-  log "WARN" "$${message}"
-}
-
-function log_error {
-  local readonly message="$1"
-  log "ERROR" "$${message}"
-}
-
-store_tags () {
+# Stores AWS tags to use as nomad client meta
+# Requires `nomad-cluster` tag to be defined
+# within AWS instance tags
+store_tags() {
   max_attempts=3
   count=0
 
-  while true
-  do
-    TOKEN=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3  \
-     -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+  while true; do
+    TOKEN=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3 \
+      -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 
-    TAGS=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3  \
-     -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
+    TAGS=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3 \
+      -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
 
     # If there's no 'nomad-cluster' found in tags, retry.
-    if [[ $${TAGS} != *"nomad-cluster"* ]];then
+    if [[ "$${TAGS}" != *"nomad-cluster"* ]]; then
       sleep 1
 
-      count=$((count+1))
+      count=$((count + 1))
 
       # If max retries still didn't get the data, fail.
-      if [[ $count == $max_attempts ]]; then
-          log_error "aborting as max attempts reached"
-          exit 1;
+      if [[ $count -eq $max_attempts ]]; then
+        log "ERROR" "aborting as max attempts reached"
+        exit 1
       fi
       continue
     fi
 
-    readarray -t ARR <<<"$TAGS"
+    readarray -t AWS_TAGS <<<"$TAGS"
     break
 
   done
 }
 
+# Sets hostname for the system
+# Replaces `ip` in the hostname with the AWS instance `Name` tag
 set_hostname() {
-for t in "$${ARR[@]}"
-do
-# For servers we'll use the NAME tag of the EC2 instance.
-if [ "$t" == "Name" ]; then
-    TAG=$(curl -s --retry 3 --retry-delay 3 --connect-timeout 3  \
-       -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$t")
+  for t in "$${AWS_TAGS[@]}"; do
+    # For servers we'll use the NAME tag of the EC2 instance.
+    if [ "$t" == "Name" ]; then
+      TAG=$(curl -s --retry 3 --retry-delay 3 --connect-timeout 3 \
+        -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$t")
 
-    # The original hostname is like `ip-10-x-y-z`
-    orig_hostname=$(sudo hostnamectl --static)
-    # Replace `ip` with tag value.
-    new_hostname=$(sed "s/ip/$${TAG}/g" <<<"$${orig_hostname}")
-    log_info "setting hostname as $${new_hostname}"
-    sudo hostnamectl set-hostname "$${new_hostname}"
-    # Set as variable.
-    HOSTNAME=$${new_hostname}
-fi
-done
+      # The original hostname is like `ip-10-x-y-z`
+      CURR_HOSTNAME=$(sudo hostnamectl --static)
+      # Replace `ip` with tag value.
+      HOSTNAME="$${CURR_HOSTNAME//ip/$TAG}"
+      log "INFO" "setting hostname as $HOSTNAME"
+      sudo hostnamectl set-hostname "$HOSTNAME"
+    fi
+  done
 }
 
-get_local_ipv4() {
-  PRIVATE_IP=$(curl -s --retry 3 --retry-delay 3 --connect-timeout 3  \
-       -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/local-ipv4")
-}
-
+# Ensures the resolv.conf within nomad `exec` jobs
+# can access other machines
+# see: https://github.com/hashicorp/nomad/issues/11033
 prepare_dns_config() {
   echo "preparing dns config for exec"
-  sudo mkdir -p /etc/nomad_exec/
-  cat <<EOF > /etc/nomad_exec/resolv_r53.conf
+  cat <<EOF >/etc/nomad.d/route53_resolv.conf
 nameserver ${route_53_resolver_address}
 search ap-south-1.compute.internal
 EOF
 }
 
+# Enables nomad systemd service
 start_nomad() {
   sudo systemctl enable --now nomad
 }
 
+# Restarts nomad systemd service
 restart_nomad() {
   sudo systemctl restart nomad
 }
 
+# Sets up `/etc/nomad.d`
 prepare_nomad_client_config() {
-  cat <<EOF > /etc/nomad.d/nomad.hcl
+  cat <<EOF >/etc/nomad.d/nomad.hcl
 ${nomad_client_cfg}
 EOF
 
-cat <<EOF >> /etc/nomad.d/nomad.hcl
-vault {
-  enabled          = false
-}
-
+  cat <<EOF >>/etc/nomad.d/client.hcl
 client {
   enabled = true
   server_join {
     retry_join = ["provider=aws region=ap-south-1 tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }
   meta {
-$(for t in "$${ARR[@]}"
-do
-  key=$(echo "$t" | sed -e "s|:|_|g")
-  TAG=`curl -s --connect-timeout 3 --retry 3 --retry-delay 3  \
-       -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$t"`
-echo -e "\tec2_$key = \"$TAG\""
-done)
+$(for tag in "$${AWS_TAGS[@]}"; do
+    key=${tag//:/_}
+    TAG=$(curl -s --connect-timeout 3 --retry 3 --retry-delay 3 \
+      -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$tag")
+    echo -e "\tec2_$key = \"$TAG\""
+  done)
   }
   chroot_env {
     # Defaults
@@ -153,7 +138,7 @@ done)
     "/etc/timezone"     = "/etc/timezone"
 
     # DNS
-    "/etc/nomad_exec/resolv_r53.conf" = "/etc/resolv.conf"
+    "/etc/nomad.d/route53_resolv.conf" = "/etc/resolv.conf"
 
   }
 }
@@ -174,7 +159,7 @@ EOF
 }
 
 add_docker_to_nomad() {
-  cat <<EOF >> /etc/nomad.d/nomad.hcl
+  cat <<EOF >>/etc/nomad.d/docker.hcl
 plugin "docker" {
   config {
     auth {
@@ -199,28 +184,24 @@ plugin "docker" {
 EOF
 }
 
-
-log_info "Fetching EC2 Tags from AWS"
+log "INFO" "Fetching EC2 Tags from AWS"
 store_tags
 
-log_info "Setting hostname of machine"
+log "INFO" "Setting machine hostname"
 set_hostname
 
-log_info "Fetching private IPv4 of machine"
-get_local_ipv4
-
-log_info "Prepare DNS config for exec tasks"
+log "INFO" "Prepare DNS config for exec tasks"
 prepare_dns_config
 
-log_info "Rendering client config for nomad"
+log "INFO" "Rendering client config for nomad"
 prepare_nomad_client_config
 
-if [ ${enable_docker_plugin} == "true" ]; then
-    log_info "Adding docker config to Nomad"
-    add_docker_to_nomad
-fi
+%{ if enable_docker_plugin }
+log "INFO" "Adding docker config to Nomad"
+add_docker_to_nomad
+%{ endif }
 
-log_info "Starting Nomad service"
+log "INFO" "Starting Nomad service"
 start_nomad
 
-log_info "Finished client initializing process! Enjoy Nomad!"
+log "INFO" "Finished client initializing process! Enjoy Nomad!"
