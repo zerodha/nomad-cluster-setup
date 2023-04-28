@@ -79,6 +79,11 @@ variable "instance_count" {
   description = "Number of Nomad server instances to run"
   type        = number
   default     = 3
+
+  validation {
+    condition     = var.instance_count != 2
+    error_message = "Set server size to 1 or > 2 for failure tolerance (3 to 5 recommended). See: https://developer.hashicorp.com/nomad/docs/concepts/consensus#deployment-table"
+  }
 }
 
 variable "instance_type" {
