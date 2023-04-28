@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -25,11 +25,11 @@ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(l
 sudo apt-get -y update
 
 # Install Nomad
-sudo apt-get install -y nomad=${NOMAD_VERSION}-1
+sudo apt-get install -y nomad="${NOMAD_VERSION}"-1
 
 # Download and install CNI plugins
-curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-$( [ $(uname -m) = aarch64 ] && echo arm64 || echo amd64)"-"${CNI_VERSION}".tgz && \
-  sudo mkdir -p /opt/cni/bin && \
+curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-$([ "$(uname -m)" = aarch64 ] && echo arm64 || echo amd64)-${CNI_VERSION}".tgz &&
+  sudo mkdir -p /opt/cni/bin &&
   sudo tar -C /opt/cni/bin -xzf cni-plugins.tgz
 
 # Stop and disable Nomad service
@@ -40,16 +40,16 @@ sudo systemctl disable nomad
 if [ "$INSTALL_DOCKER" = true ]; then
   sudo apt-get -y update
   sudo apt-get -y install \
-      ca-certificates \
-      curl \
-      gnupg
+    ca-certificates \
+    curl \
+    gnupg
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   sudo chmod a+r /etc/apt/keyrings/docker.gpg
   echo \
     "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" |
+    sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
   sudo apt-get -y update
   sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
@@ -67,8 +67,7 @@ if [ "$INSTALL_DOCKER" = true ]; then
       }
   }' | sudo tee /etc/docker/daemon.json >/dev/null
 
-  
-    # Restart Docker
-    sudo systemctl restart docker
-    sudo usermod -aG docker ubuntu
+  # Restart Docker
+  sudo systemctl restart docker
+  sudo usermod -aG docker ubuntu
 fi
