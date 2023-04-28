@@ -1,0 +1,66 @@
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+No requirements.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_autoscaling_group.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_iam_instance_profile.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
+| [aws_iam_role.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.default_iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_instance.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_launch_template.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_ami"></a> [ami](#input\_ami) | Amazon Machine Image (AMI) ID used for deploying Nomad clients | `string` | n/a | yes |
+| <a name="input_autoscale_metrics"></a> [autoscale\_metrics](#input\_autoscale\_metrics) | List of autoscaling metrics to monitor for Auto Scaling Group (ASG) instances | `list(string)` | <pre>[<br>  "GroupMinSize",<br>  "GroupMaxSize",<br>  "GroupDesiredCapacity",<br>  "GroupInServiceInstances",<br>  "GroupPendingInstances",<br>  "GroupStandbyInstances",<br>  "GroupTerminatingInstances",<br>  "GroupTotalInstances"<br>]</pre> | no |
+| <a name="input_client_name"></a> [client\_name](#input\_client\_name) | Name of the Auto Scaling Group (ASG) nodes deployed as Nomad clients | `string` | n/a | yes |
+| <a name="input_client_security_groups"></a> [client\_security\_groups](#input\_client\_security\_groups) | List of security groups to attach to the Nomad client nodes | `list(string)` | `[]` | no |
+| <a name="input_client_type"></a> [client\_type](#input\_client\_type) | Type of client to deploy: 'ec2' or 'asg' | `string` | `"asg"` | no |
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier used for naming all resources associated with the cluster | `string` | n/a | yes |
+| <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Key-value pairs of tags to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
+| <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policies to assign to the Nomad clients | `list(string)` | `[]` | no |
+| <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of custom tags to be assigned to the EBS volumes | `map(string)` | `{}` | no |
+| <a name="input_ebs_volume_size"></a> [ebs\_volume\_size](#input\_ebs\_volume\_size) | The size of the EBS volume in gigabytes | `number` | `100` | no |
+| <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
+| <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
+| <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
+| <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | Name of the existing IAM Instance Profile to use | `string` | `""` | no |
+| <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
+| <a name="input_instance_desired_count"></a> [instance\_desired\_count](#input\_instance\_desired\_count) | Desired number of Nomad clients to run | `number` | `1` | no |
+| <a name="input_instance_max_count"></a> [instance\_max\_count](#input\_instance\_max\_count) | Maximum number of Nomad clients to run | `number` | `3` | no |
+| <a name="input_instance_min_count"></a> [instance\_min\_count](#input\_instance\_min\_count) | Minimum number of Nomad clients to run | `number` | `0` | no |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad clients | `string` | `"c5a.large"` | no |
+| <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | The value of the tag used for Nomad server auto-join | `string` | n/a | yes |
+| <a name="input_override_instance_types"></a> [override\_instance\_types](#input\_override\_instance\_types) | List of instance types to define in the mixed\_instances\_policy block | `list(string)` | `[]` | no |
+| <a name="input_route_53_resolver_address"></a> [route\_53\_resolver\_address](#input\_route\_53\_resolver\_address) | Route53 resolver address for querying DNS inside exec tasks | `string` | n/a | yes |
+| <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
+| <a name="input_target_group_arns"></a> [target\_group\_arns](#input\_target\_group\_arns) | List of target groups assigned in the ALB to connect to the ASG | `list(string)` | `[]` | no |
+| <a name="input_vpc"></a> [vpc](#input\_vpc) | AWS Virtual Private Cloud (VPC) to deploy all resources in | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_nomad_client_asg"></a> [nomad\_client\_asg](#output\_nomad\_client\_asg) | Autoscaling group for the Nomad client nodes |
+| <a name="output_nomad_client_iam_profile"></a> [nomad\_client\_iam\_profile](#output\_nomad\_client\_iam\_profile) | IAM Profile created for Nomad Client |
+| <a name="output_nomad_client_iam_role_arn"></a> [nomad\_client\_iam\_role\_arn](#output\_nomad\_client\_iam\_role\_arn) | ARN of the IAM role for the Nomad client nodes |
+| <a name="output_nomad_client_launch_template_id"></a> [nomad\_client\_launch\_template\_id](#output\_nomad\_client\_launch\_template\_id) | ID of the launch template for the Nomad client nodes |
+<!-- END_TF_DOCS -->

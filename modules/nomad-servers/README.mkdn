@@ -1,0 +1,68 @@
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+No requirements.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_alb"></a> [alb](#module\_alb) | terraform-aws-modules/alb/aws | ~> 6.0 |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_autoscaling_group.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_iam_instance_profile.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
+| [aws_iam_role.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.default_iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_launch_template.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group.nomad_agent](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_alb_certificate_arn"></a> [alb\_certificate\_arn](#input\_alb\_certificate\_arn) | ARN of the HTTPS certificate to use with the ALB | `string` | `""` | no |
+| <a name="input_ami"></a> [ami](#input\_ami) | AMI ID to use for deploying Nomad servers | `string` | n/a | yes |
+| <a name="input_autoscale_metrics"></a> [autoscale\_metrics](#input\_autoscale\_metrics) | List of autoscaling metrics to enable for the Autoscaling Group | `list(string)` | <pre>[<br>  "GroupMinSize",<br>  "GroupMaxSize",<br>  "GroupDesiredCapacity",<br>  "GroupInServiceInstances",<br>  "GroupPendingInstances",<br>  "GroupStandbyInstances",<br>  "GroupTerminatingInstances",<br>  "GroupTotalInstances"<br>]</pre> | no |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region to deploy the Nomad cluster in | `string` | `"ap-south-1"` | no |
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier for the cluster, used as a prefix for all resources | `string` | n/a | yes |
+| <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Map of tag key-value pairs to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
+| <a name="input_create_alb"></a> [create\_alb](#input\_create\_alb) | Whether to create an ALB for the Nomad servers or not | `bool` | `false` | no |
+| <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policy ARNs to attach to the Nomad server instances | `list(string)` | `[]` | no |
+| <a name="input_default_security_groups"></a> [default\_security\_groups](#input\_default\_security\_groups) | List of security group IDs to assign to the Nomad server instances | `list(string)` | `[]` | no |
+| <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
+| <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
+| <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of Nomad server instances to run | `number` | `3` | no |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad server instances | `string` | `"c5a.large"` | no |
+| <a name="input_nomad_acl_bootstrap_token"></a> [nomad\_acl\_bootstrap\_token](#input\_nomad\_acl\_bootstrap\_token) | Nomad ACL bootstrap token to use for bootstrapping ACLs | `string` | n/a | yes |
+| <a name="input_nomad_alb_hostname"></a> [nomad\_alb\_hostname](#input\_nomad\_alb\_hostname) | ALB hostname to use for accessing the Nomad web UI | `string` | `"nomad.example.internal"` | no |
+| <a name="input_nomad_bootstrap_expect"></a> [nomad\_bootstrap\_expect](#input\_nomad\_bootstrap\_expect) | Number of instances expected to bootstrap a new Nomad cluster | `number` | `3` | no |
+| <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |
+| <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | Value of the tag used for Nomad server auto-join | `string` | n/a | yes |
+| <a name="input_nomad_server_incoming_ips"></a> [nomad\_server\_incoming\_ips](#input\_nomad\_server\_incoming\_ips) | List of IPs to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
+| <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
+| <a name="input_vpc"></a> [vpc](#input\_vpc) | ID of the AWS VPC to deploy all the resources in | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | The DNS name of the ALB |
+| <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id) | The ID of the ALB security group |
+| <a name="output_nomad_agent_security_group_id"></a> [nomad\_agent\_security\_group\_id](#output\_nomad\_agent\_security\_group\_id) | The ID of the Nomad agent security group |
+| <a name="output_nomad_server_asg_arn"></a> [nomad\_server\_asg\_arn](#output\_nomad\_server\_asg\_arn) | The ARN of the Nomad server Auto Scaling Group |
+| <a name="output_nomad_server_asg_name"></a> [nomad\_server\_asg\_name](#output\_nomad\_server\_asg\_name) | The name of the Nomad server Auto Scaling Group |
+| <a name="output_nomad_server_iam_role_arn"></a> [nomad\_server\_iam\_role\_arn](#output\_nomad\_server\_iam\_role\_arn) | The ARN of the Nomad server IAM role |
+| <a name="output_nomad_server_launch_template_id"></a> [nomad\_server\_launch\_template\_id](#output\_nomad\_server\_launch\_template\_id) | The ID of the Nomad server launch template |
+<!-- END_TF_DOCS -->
