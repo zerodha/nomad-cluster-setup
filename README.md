@@ -70,7 +70,7 @@ An internal Application Load Balancer (ALB) is _optionally_ created for the Noma
 
 ## Nomad Server
 
-The [setup_server](./modules/nomad-servers/scripts/setup_server.tftpl.sh) script included in this project configures and bootstraps Nomad server nodes in an AWS Auto Scaling group. The script performs the following steps:
+The [`setup_server`](./modules/nomad-servers/scripts/setup_server.tftpl.sh) script included in this project configures and bootstraps Nomad server nodes in an AWS Auto Scaling group. The script performs the following steps:
 
 - Configures the Nomad agent as a server on the EC2 instances and uses the `nomad_join_tag_value` tag to auto-join the cluster. Once all the server instances discover each other, they elect a leader.
 - Bootstraps the Nomad ACL system with a pre-configured token on the first server.
@@ -99,11 +99,11 @@ module "nomad_servers" {
 
 ### Terraform Module Reference
 
-Check out [nomad_servers](./modules/nomad-servers/README.mkdn) documentation for module reference.
+Check out [`nomad_servers`](./modules/nomad-servers/README.mkdn) documentation for module reference.
 
 ## Nomad Client
 
-The [setup_client](./modules/nomad-clients/scripts/setup_client.tftpl.sh) script included in this project configures Nomad client nodes in an AWS Auto Scaling group. The script performs the following steps:
+The [`setup_client`](./modules/nomad-clients/scripts/setup_client.tftpl.sh) script included in this project configures Nomad client nodes in an AWS Auto Scaling group. The script performs the following steps:
 
 - Configures the Nomad agent as a client on the EC2 instances and uses the `nomad_join_tag_value` tag to auto-join the cluster.
 - Configures DNS resolution for the Nomad cluster inside `exec` driver.
@@ -128,9 +128,11 @@ module "nomad_client_kite_alerts" {
 }
 ```
 
+**NOTE:** This module does not set up an ALB for accessing applications running on Nomad Clients. This is left up to the user to configure. Check out [`terraform-aws-alb`](https://github.com/terraform-aws-modules/terraform-aws-alb) for more information. You may also need to set [`target_group_arns`](./modules/nomad-clients#input_target_group_arns) if Auto-Scaling Groups are used.
+
 ### Terraform Module Reference
 
-Check out [nomad_clients](./modules/nomad-clients/README.mkdn) documentation for module reference.
+Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation for module reference.
 
 ## Contributors
 
