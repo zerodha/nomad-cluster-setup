@@ -14,13 +14,13 @@ Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) 
     - [IAM Role](#iam-role)
     - [ALB](#alb)
   - [Nomad Server](#nomad-server)
-    - [Example Usage](#example-usage)
-    - [Inputs](#inputs)
-    - [Outputs](#outputs)
+    - [Terraform Module Reference](#terraform-module-reference)
   - [Nomad Client](#nomad-client)
-    - [Example Usage](#example-usage-1)
-    - [Inputs](#inputs-1)
-    - [Outputs](#outputs-1)
+    - [Terraform Module Reference](#terraform-module-reference-1)
+  - [Example Usage](#example-usage)
+    - [Nomad Servers](#nomad-servers)
+    - [Nomad Clients](#nomad-clients)
+    - [Other Examples](#other-examples)
   - [Contributors](#contributors)
   - [Contributing](#contributing)
   - [LICENSE](#license)
@@ -50,6 +50,8 @@ The key resources provisioned by this module are:
 ### Auto Scaling Group (ASG)
 
 The module deploys Nomad on top of an Auto Scaling Group (ASG). For optimal performance and fault tolerance, it is recommended to run the Nomad server ASG with 3 or 5 EC2 instances distributed across multiple Availability Zones. Each EC2 instance should utilize an AMI built using the provided Packer script.
+
+**NOTE:** The Nomad Client terraform module allows setting up EC2 instances instead of ASGs. Check out the [`nomad_clients` Terraform Module Reference](./modules/nomad-clients/README.mkdn) for more information.
 
 ### Security Group
 
@@ -89,9 +91,13 @@ The [`setup_client`](./modules/nomad-clients/scripts/setup_client.tftpl.sh) scri
 - Configures DNS resolution for the Nomad cluster inside `exec` driver.
 - Prepares configurations for different task drivers.
 
-### Example Usage
+### Terraform Module Reference
 
-#### Nomad Servers
+Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation for module reference.
+
+## Example Usage
+
+### Nomad Servers
 
 ```hcl
 module "nomad_servers" {
@@ -111,7 +117,7 @@ module "nomad_servers" {
 }
 ```
 
-#### Nomad Clients
+### Nomad Clients
 
 ```hcl
 module "nomad_client_demo" {
@@ -130,15 +136,11 @@ module "nomad_client_demo" {
 }
 ```
 
-**NOTE:** This module does not set up an ALB for accessing applications running on Nomad Clients. This is left up to the user to configure. Check out [`terraform-aws-alb`](https://github.com/terraform-aws-modules/terraform-aws-alb) for more information. You may also need to set [`target_group_arns`](./modules/nomad-clients#input_target_group_arns) if Auto-Scaling Groups are used.
+**NOTE:** This module does not set up an ALB for accessing applications running on Nomad Clients. This is left up to the user to configure. Check out [`terraform-aws-alb`](https://github.com/terraform-aws-modules/terraform-aws-alb) or [Other Examples](#other-examples) for more information. You may also need to set [`target_group_arns`](./modules/nomad-clients#input_target_group_arns) if Auto-Scaling Groups are used.
 
-#### Other Examples
+### Other Examples
 
 * [Complete Cluster Setup](./examples)
-
-### Terraform Module Reference
-
-Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation for module reference.
 
 ## Contributors
 
