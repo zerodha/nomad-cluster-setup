@@ -3,7 +3,7 @@ resource "aws_launch_template" "nomad_client" {
   description             = "Launch template for nomad client ${var.client_name} in ${var.cluster_name} cluster"
   disable_api_termination = false
   image_id                = var.ami
-  instance_type           = var.instance_type
+  instance_type           = data.aws_ec2_instance_type.type.instance_type
   name                    = "${var.cluster_name}-client-${var.client_name}"
   tags                    = {}
   vpc_security_group_ids  = concat(var.client_security_groups)

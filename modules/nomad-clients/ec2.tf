@@ -2,7 +2,7 @@ resource "aws_instance" "nomad_client" {
   count = var.client_type == "ec2" ? var.ec2_count : 0
 
   ami                     = var.ami
-  instance_type           = var.instance_type
+  instance_type           = data.aws_ec2_instance_type.type.instance_type
   iam_instance_profile    = var.iam_instance_profile == "" ? aws_iam_instance_profile.nomad_client[0].name : var.iam_instance_profile
   disable_api_termination = false
   subnet_id               = element(var.subnets, count.index)

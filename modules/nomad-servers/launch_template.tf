@@ -2,7 +2,7 @@ resource "aws_launch_template" "nomad_server" {
   description             = "Launch template for nomad servers in ${var.cluster_name} cluster"
   disable_api_termination = false
   image_id                = var.ami
-  instance_type           = var.instance_type
+  instance_type           = data.aws_ec2_instance_type.type.instance_type
   name                    = "${var.cluster_name}-server"
   tags                    = {}
   vpc_security_group_ids  = concat(var.default_security_groups, [aws_security_group.nomad_agent.id])
