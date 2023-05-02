@@ -10,10 +10,10 @@ output "nomad_client_asg" {
 
 output "nomad_client_iam_role_arn" {
   description = "ARN of the IAM role for the Nomad client nodes"
-  value       = aws_iam_role.nomad_client.arn
+  value       = var.iam_instance_profile == "" ? aws_iam_role.nomad_client[0].arn : ""
 }
 
 output "nomad_client_launch_template_id" {
   description = "ID of the launch template for the Nomad client nodes"
-  value       = aws_launch_template.nomad_client.id
+  value       = var.client_type == "asg" ? aws_launch_template.nomad_client[0].id : ""
 }
