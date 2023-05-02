@@ -10,9 +10,7 @@
 
 set -Eeuo pipefail
 
-declare -r SCRIPT_NAME
-SCRIPT_NAME="$(basename "$0")"
-
+declare -r SCRIPT_NAME="$(basename "$0")"
 declare -ag AWS_TAGS=()
 
 # Send the log output from this script to user-data.log, syslog, and the console.
@@ -83,7 +81,6 @@ set_hostname() {
 # can access other machines
 # see: https://github.com/hashicorp/nomad/issues/11033
 prepare_dns_config() {
-  echo "preparing dns config for exec"
   cat <<EOF >/etc/nomad.d/route53_resolv.conf
 nameserver ${route_53_resolver_address}
 search ap-south-1.compute.internal
@@ -106,7 +103,7 @@ prepare_nomad_client_config() {
 ${nomad_client_cfg}
 EOF
 
-  cat <<EOF >>/etc/nomad.d/client.hcl
+  cat <<EOF >>/etc/nomad.d/nomad.hcl
 client {
   enabled = true
   server_join {
@@ -114,7 +111,7 @@ client {
   }
   meta {
 $(for tag in "$${AWS_TAGS[@]}"; do
-    key=${tag//:/_}
+    key=$${tag//:/_}
     TAG=$(curl -s --connect-timeout 3 --retry 3 --retry-delay 3 \
       -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$tag")
     echo -e "\tec2_$key = \"$TAG\""
@@ -159,7 +156,7 @@ EOF
 }
 
 add_docker_to_nomad() {
-  cat <<EOF >>/etc/nomad.d/docker.hcl
+  cat <<EOF >>/etc/nomad.d/nomad.hcl
 plugin "docker" {
   config {
     auth {

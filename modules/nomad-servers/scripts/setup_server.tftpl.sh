@@ -13,8 +13,7 @@
 
 set -Eeuo pipefail
 
-declare -r SCRIPT_NAME
-SCRIPT_NAME="$(basename "$0")"
+declare -r SCRIPT_NAME="$(basename "$0")"
 
 declare -ag AWS_TAGS=()
 
