@@ -10,7 +10,7 @@ output "nomad_client_asg" {
 
 output "nomad_client_ec2" {
   description = "EC2 client ID for the Nomad client node"
-  value       = var.client_type == "ec2" ? aws_instance.nomad_client.id : ""
+  value       = var.client_type == "ec2" ? aws_instance.nomad_client[*].id : ""
 }
 
 output "nomad_client_iam_role_arn" {
