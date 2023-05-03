@@ -8,6 +8,11 @@ output "nomad_client_asg" {
   value       = var.client_type == "asg" ? aws_autoscaling_group.nomad_client[0].name : ""
 }
 
+output "nomad_client_ec2" {
+  description = "EC2 client ID for the Nomad client node"
+  value       = var.client_type == "ec2" ? aws_instance.nomad_client.id : ""
+}
+
 output "nomad_client_iam_role_arn" {
   description = "ARN of the IAM role for the Nomad client nodes"
   value       = var.iam_instance_profile == "" ? aws_iam_role.nomad_client[0].arn : ""
