@@ -101,7 +101,7 @@ Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation f
 
 ```hcl
 module "nomad_servers" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//nomad-servers?ref=main"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-servers?ref=main"
 
   cluster_name         = "demo-nomad"
   nomad_join_tag_value = "demo"
@@ -121,7 +121,7 @@ module "nomad_servers" {
 
 ```hcl
 module "nomad_client_demo" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//nomad-clients?ref=main"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-clients?ref=main"
 
   cluster_name              = "demo-nomad"
   nomad_join_tag_value      = "demo"
