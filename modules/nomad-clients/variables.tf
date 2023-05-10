@@ -144,6 +144,12 @@ variable "healthcheck_type" {
   }
 }
 
+variable "health_check_grace_period" {
+  description = "The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks."
+  type        = number
+  default     = 180
+}
+
 variable "instance_desired_count" {
   description = "Desired number of Nomad clients to run"
   type        = number

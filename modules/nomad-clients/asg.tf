@@ -5,7 +5,7 @@ resource "aws_autoscaling_group" "nomad_client" {
   max_size                  = var.instance_max_count
   min_size                  = var.instance_min_count
   desired_capacity          = var.instance_desired_count
-  health_check_grace_period = 60
+  health_check_grace_period = var.health_check_grace_period
   health_check_type         = var.healthcheck_type
   vpc_zone_identifier       = var.subnets
   wait_for_capacity_timeout = "10m"
