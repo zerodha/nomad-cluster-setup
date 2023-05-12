@@ -29,6 +29,7 @@
 | [aws_launch_template.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.nomad_agent](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_ec2_instance_type.type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
@@ -48,7 +49,8 @@
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
 | <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of Nomad server instances to run | `number` | `3` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad server instances | `string` | `"c5a.large"` | no |
-| <a name="input_nomad_acl_bootstrap_token"></a> [nomad\_acl\_bootstrap\_token](#input\_nomad\_acl\_bootstrap\_token) | Nomad ACL bootstrap token to use for bootstrapping ACLs | `string` | n/a | yes |
+| <a name="input_nomad_acl_bootstrap_token"></a> [nomad\_acl\_bootstrap\_token](#input\_nomad\_acl\_bootstrap\_token) | Nomad ACL bootstrap token to use for bootstrapping ACLs | `string` | `""` | no |
+| <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
 | <a name="input_nomad_alb_hostname"></a> [nomad\_alb\_hostname](#input\_nomad\_alb\_hostname) | ALB hostname to use for accessing the Nomad web UI | `string` | `"nomad.example.internal"` | no |
 | <a name="input_nomad_bootstrap_expect"></a> [nomad\_bootstrap\_expect](#input\_nomad\_bootstrap\_expect) | Number of instances expected to bootstrap a new Nomad cluster | `number` | `3` | no |
 | <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |

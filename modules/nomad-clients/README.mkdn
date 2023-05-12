@@ -26,6 +26,7 @@ No modules.
 | [aws_iam_role_policy_attachment.default_iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_instance.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_launch_template.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [aws_ec2_instance_type.type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
@@ -44,6 +45,7 @@ No modules.
 | <a name="input_ebs_volume_size"></a> [ebs\_volume\_size](#input\_ebs\_volume\_size) | The size of the EBS volume in gigabytes | `number` | `100` | no |
 | <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
 | <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
+| <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks. | `number` | `180` | no |
 | <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | Name of the existing IAM Instance Profile to use | `string` | `""` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
@@ -63,6 +65,7 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_nomad_client_asg"></a> [nomad\_client\_asg](#output\_nomad\_client\_asg) | Autoscaling group for the Nomad client nodes |
+| <a name="output_nomad_client_ec2"></a> [nomad\_client\_ec2](#output\_nomad\_client\_ec2) | EC2 client ID for the Nomad client node |
 | <a name="output_nomad_client_iam_profile"></a> [nomad\_client\_iam\_profile](#output\_nomad\_client\_iam\_profile) | IAM Profile created for Nomad Client |
 | <a name="output_nomad_client_iam_role_arn"></a> [nomad\_client\_iam\_role\_arn](#output\_nomad\_client\_iam\_role\_arn) | ARN of the IAM role for the Nomad client nodes |
 | <a name="output_nomad_client_launch_template_id"></a> [nomad\_client\_launch\_template\_id](#output\_nomad\_client\_launch\_template\_id) | ID of the launch template for the Nomad client nodes |
