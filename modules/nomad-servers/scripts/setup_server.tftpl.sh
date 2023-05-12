@@ -116,7 +116,7 @@ wait_for_leader() {
   return 1
 }
 
-bootstrap_init() {
+bootstrap_acl() {
   # Get the IP address of this node.
   local ip_address
   ip_address=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
@@ -155,8 +155,13 @@ start_nomad
 log "INFO" "Waiting for Nomad to be ready"
 wait_for_leader
 
-log "INFO" "Bootstrapping Nomad"
-bootstrap_init
+# TODO: Check the logic of conditional in client and keep it consistent.
+if [ "${nomad_acl_enable}" = true ] ; then
+    log "INFO" "Bootstrapping ACL for Nomad"
+    bootstrap_acl
+else
+    log "INFO" "Skipping ACL Bootstrap for Nomad as 'nomad_acl_enable' is not set to true"
+fi
 
 log "INFO" "Restarting services"
 restart_nomad

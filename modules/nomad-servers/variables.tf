@@ -98,11 +98,20 @@ variable "iam_tags" {
   default     = {}
 }
 
+variable "nomad_acl_enable" {
+  description = "Whether to enable ACLs on the Nomad cluster or not"
+  type        = bool
+  default     = true
+}
+
+# TODO: Add validation for the token format
+# TODO: Add validation to check if acl is enabled then value can't be null.
 variable "nomad_acl_bootstrap_token" {
   description = "Nomad ACL bootstrap token to use for bootstrapping ACLs"
   type        = string
   sensitive   = true
-  nullable    = false
+  default     = ""
+  # nullable    = true
 }
 
 variable "nomad_alb_hostname" {
