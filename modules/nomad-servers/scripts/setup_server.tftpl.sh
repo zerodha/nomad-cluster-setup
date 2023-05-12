@@ -155,13 +155,12 @@ start_nomad
 log "INFO" "Waiting for Nomad to be ready"
 wait_for_leader
 
-# TODO: Check the logic of conditional in client and keep it consistent.
-if [ "${nomad_acl_enable}" = true ] ; then
-    log "INFO" "Bootstrapping ACL for Nomad"
-    bootstrap_acl
-else
-    log "INFO" "Skipping ACL Bootstrap for Nomad as 'nomad_acl_enable' is not set to true"
-fi
+%{ if nomad_acl_enable }
+log "INFO" "Bootstrapping ACL for Nomad"
+bootstrap_acl
+%{else}
+log "INFO" "Skipping ACL Bootstrap for Nomad as 'nomad_acl_enable' is not set to true"
+%{ endif }
 
 log "INFO" "Restarting services"
 restart_nomad
