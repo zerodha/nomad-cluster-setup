@@ -15,7 +15,7 @@ jobs:
       uses: terraform-docs/gh=actions@main
       with:
         working-dir: ./modules/nomad-clients
-        output-file: ./modules/nomad-clients/README.mkdn
+        output-file: README.mkdn
         output-method: inject
         git-push: "true"
 
@@ -23,6 +23,6 @@ jobs:
       uses: terraform-docs/gh=actions@main
       with:
         working-dir: ./modules/nomad-servers
-        output-file: ./modules/nomad-servers/README.mkdn
+        output-file: README.mkdn
         output-method: inject
         git-push: "true"
