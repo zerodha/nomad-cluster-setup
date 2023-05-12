@@ -3,7 +3,7 @@ name: Generate Terraform Module Documentation
 on:
   push:
     branches: ['main']
-    paths: ['modules/nomad-clients/**', 'modules/nomad-servers/**']
+    paths: ['**.tf']
 
 jobs:
   deploy:
