@@ -19,7 +19,7 @@ variable "dry_run" {
 
 variable "nomad_version" {
   type    = string
-  default = "1.5.3"
+  default = "1.5.5"
 }
 
 variable "install_docker" {

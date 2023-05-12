@@ -5,7 +5,7 @@ set -e
 # Disable interactive apt prompts
 export DEBIAN_FRONTEND=noninteractive
 
-NOMAD_VERSION="${NOMAD_VERSION:-1.5.3}"
+NOMAD_VERSION="${NOMAD_VERSION:-1.5.5}"
 CNI_VERSION="${CNI_VERSION:-v1.2.0}"
 INSTALL_DOCKER="${INSTALL_DOCKER:-false}"
 
