@@ -20,7 +20,7 @@ jobs:
         git-push: "true"
 
     - name: Render Terraform Nomad Servers Module Documentation
-      uses: terraform-docs/gh=actions@main
+      uses: terraform-docs/gh-actions@main
       with:
         working-dir: ./modules/nomad-servers
         output-file: README.mkdn
