@@ -1,0 +1,28 @@
+name: Generate Terraform Module Documentation
+
+on:
+  push:
+    branches: ['main']
+    paths: ['modules/nomad-clients/**', 'modules/nomad-servers/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Render Terraform Nomad Clients Module Documentation
+      uses: terraform-docs/gh=actions@main
+      with:
+        working-dir: ./modules/nomad-clients
+        output-file: ./modules/nomad-clients/README.mkdn
+        output-method: inject
+        git-push: "true"
+
+    - name: Render Terraform Nomad Servers Module Documentation
+      uses: terraform-docs/gh=actions@main
+      with:
+        working-dir: ./modules/nomad-servers
+        output-file: ./modules/nomad-servers/README.mkdn
+        output-method: inject
+        git-push: "true"
