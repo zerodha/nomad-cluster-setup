@@ -161,7 +161,6 @@ plugin "docker" {
   config {
     auth {
       config = "/etc/docker/config.json"
-      helper = "ecr-login"
     }
     allow_privileged = true
     volumes {
