@@ -180,3 +180,9 @@ variable "target_group_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "wait_for_capacity_timeout" {
+  description = "Time for which Terraform waits after ASG creation to see if instances are running."
+  type        = string
+  default     = "10m"
+}
