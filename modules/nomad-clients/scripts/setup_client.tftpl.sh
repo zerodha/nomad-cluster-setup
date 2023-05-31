@@ -169,10 +169,10 @@ plugin "docker" {
     extra_labels = ["job_name", "job_id", "task_group_name", "task_name", "namespace", "node_name", "node_id"]
 
     logging {
-      type = "journald"
+      type = "json-file"
       config {
-        tag    = "hashicluster_nomad"
-        labels = "com.hashicorp.nomad.alloc_id,com.hashicorp.nomad.job_id,com.hashicorp.nomad.job_name,com.hashicorp.nomad.namespace,com.hashicorp.nomad.node_id,com.hashicorp.nomad.node_name,com.hashicorp.nomad.task_group_name,com.hashicorp.nomad.task_name"
+        max-size = "10m"
+        max-file = 10
       }
     }
   }
