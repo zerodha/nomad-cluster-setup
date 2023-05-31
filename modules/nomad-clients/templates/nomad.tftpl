@@ -12,8 +12,9 @@ advertise {
 }
 
 acl {
-  enabled = true
+  enabled = ${nomad_acl_enable ? true : false}
 }
+
 
 consul {
   auto_advertise   = false
