@@ -186,3 +186,9 @@ variable "wait_for_capacity_timeout" {
   type        = string
   default     = "10m"
 }
+
+variable "nomad_acl_enable" {
+  description = "Whether to enable ACLs on the Nomad cluster or not"
+  type        = bool
+  default     = true
+}
