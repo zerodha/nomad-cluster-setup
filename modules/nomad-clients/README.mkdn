@@ -41,6 +41,7 @@ No modules.
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier used for naming all resources associated with the cluster | `string` | n/a | yes |
 | <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Key-value pairs of tags to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
 | <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policies to assign to the Nomad clients | `list(string)` | `[]` | no |
+| <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of custom tags to be assigned to the EBS volumes | `map(string)` | `{}` | no |
 | <a name="input_ebs_volume_size"></a> [ebs\_volume\_size](#input\_ebs\_volume\_size) | The size of the EBS volume in gigabytes | `number` | `100` | no |
 | <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
