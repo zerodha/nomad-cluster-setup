@@ -32,6 +32,7 @@ resource "aws_launch_template" "nomad_server" {
     device_name = "/dev/sda1"
 
     ebs {
+      encrypted             = var.ebs_encryption
       delete_on_termination = true
       volume_size           = 100
       volume_type           = "gp3"
