@@ -52,6 +52,12 @@ variable "ebs_volume_size" {
   default     = 100
 }
 
+variable "ebs_encryption" {
+  description = "Enable EBS encryption"
+  type        = bool
+  default     = true
+}
+
 variable "ebs_tags" {
   description = "A map of custom tags to be assigned to the EBS volumes"
   type        = map(string)

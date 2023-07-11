@@ -75,6 +75,12 @@ variable "ebs_tags" {
   default     = {}
 }
 
+variable "ebs_encryption" {
+  description = "Enable EBS encryption"
+  type        = bool
+  default     = true
+}
+
 variable "instance_count" {
   description = "Number of Nomad server instances to run"
   type        = number

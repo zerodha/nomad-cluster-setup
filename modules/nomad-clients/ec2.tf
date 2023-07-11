@@ -9,6 +9,7 @@ resource "aws_instance" "nomad_client" {
   vpc_security_group_ids  = var.client_security_groups
 
   root_block_device {
+    encrypted             = var.ebs_encryption
     delete_on_termination = true
     volume_size           = var.ebs_volume_size
     volume_type           = "gp3"
