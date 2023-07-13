@@ -151,6 +151,12 @@ variable "nomad_server_incoming_ips" {
   default     = []
 }
 
+variable "nomad_server_incoming_security_groups" {
+  description = "List of Security Groups to allow incoming connections from to Nomad server ALBs"
+  type        = list(string)
+  default     = []
+}
+
 variable "subnets" {
   description = "List of subnets to assign for deploying instances"
   type        = list(string)
