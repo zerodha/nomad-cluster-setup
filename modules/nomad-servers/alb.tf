@@ -97,9 +97,9 @@ resource "aws_security_group" "alb" {
       description      = "Allow access to Nomad ALB"
       from_port        = var.alb_certificate_arn == "" ? 80 : 443
       to_port          = var.alb_certificate_arn == "" ? 80 : 443
-      cidr_blocks      = concat(var.nomad_server_incoming_ips)
+      cidr_blocks      = var.nomad_server_incoming_ips
       ipv6_cidr_blocks = []
-      security_groups  = []
+      security_groups  = var.nomad_server_incoming_security_groups
       prefix_list_ids  = []
       self             = false
       protocol         = "tcp"
