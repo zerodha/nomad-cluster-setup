@@ -57,6 +57,7 @@
 | <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | Value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_nomad_server_incoming_ips"></a> [nomad\_server\_incoming\_ips](#input\_nomad\_server\_incoming\_ips) | List of IPs to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
+| <a name="input_nomad_server_incoming_security_groups"></a> [nomad\_server\_incoming\_security\_groups](#input\_nomad\_server\_incoming\_security\_groups) | List of Security Groups to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | ID of the AWS VPC to deploy all the resources in | `string` | n/a | yes |
 
