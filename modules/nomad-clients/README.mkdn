@@ -69,6 +69,7 @@ No modules.
 |------|-------------|
 | <a name="output_nomad_client_asg"></a> [nomad\_client\_asg](#output\_nomad\_client\_asg) | Autoscaling group for the Nomad client nodes |
 | <a name="output_nomad_client_ec2"></a> [nomad\_client\_ec2](#output\_nomad\_client\_ec2) | EC2 client ID for the Nomad client node |
+| <a name="output_nomad_client_ec2_availability_zones"></a> [nomad\_client\_ec2\_availability\_zones](#output\_nomad\_client\_ec2\_availability\_zones) | Availability zones for the Nomad client nodes |
 | <a name="output_nomad_client_iam_profile"></a> [nomad\_client\_iam\_profile](#output\_nomad\_client\_iam\_profile) | IAM Profile created for Nomad Client |
 | <a name="output_nomad_client_iam_role_arn"></a> [nomad\_client\_iam\_role\_arn](#output\_nomad\_client\_iam\_role\_arn) | ARN of the IAM role for the Nomad client nodes |
 | <a name="output_nomad_client_launch_template_id"></a> [nomad\_client\_launch\_template\_id](#output\_nomad\_client\_launch\_template\_id) | ID of the launch template for the Nomad client nodes |
