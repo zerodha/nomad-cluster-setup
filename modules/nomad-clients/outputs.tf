@@ -13,6 +13,11 @@ output "nomad_client_ec2" {
   value       = var.client_type == "ec2" ? aws_instance.nomad_client[*].id : []
 }
 
+output "nomad_client_ec2_availability_zones" {
+  description = "Availability zones for the Nomad client nodes"
+  value       = var.client_type == "ec2" ? aws_instance.nomad_client[*].availability_zone : []
+}
+
 output "nomad_client_iam_role_arn" {
   description = "ARN of the IAM role for the Nomad client nodes"
   value       = var.iam_instance_profile == "" ? aws_iam_role.nomad_client[0].arn : ""
