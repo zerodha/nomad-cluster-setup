@@ -5,8 +5,8 @@ set -e
 # Disable interactive apt prompts
 export DEBIAN_FRONTEND=noninteractive
 
-NOMAD_VERSION="${NOMAD_VERSION:-1.5.5}"
-CNI_VERSION="${CNI_VERSION:-v1.2.0}"
+NOMAD_VERSION="${NOMAD_VERSION:-1.6.1}"
+CNI_VERSION="${CNI_VERSION:-v1.3.0}"
 INSTALL_DOCKER="${INSTALL_DOCKER:-false}"
 
 # Update packages

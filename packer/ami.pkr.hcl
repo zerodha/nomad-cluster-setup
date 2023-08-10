@@ -1,5 +1,11 @@
 packer {
   required_version = ">= 1.8.0"
+  required_plugins {
+    amazon = {
+      source  = "github.com/hashicorp/amazon"
+      version = "~> 1"
+    }
+  }
 }
 
 locals {
@@ -19,7 +25,7 @@ variable "dry_run" {
 
 variable "nomad_version" {
   type    = string
-  default = "1.5.5"
+  default = "1.6.1"
 }
 
 variable "install_docker" {
