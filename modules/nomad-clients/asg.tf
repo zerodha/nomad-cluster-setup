@@ -60,4 +60,8 @@ resource "aws_autoscaling_group" "nomad_client" {
   timeouts {
     delete = "15m"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

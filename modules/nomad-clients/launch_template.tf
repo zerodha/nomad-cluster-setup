@@ -60,4 +60,8 @@ resource "aws_launch_template" "nomad_client" {
       var.ebs_tags
     )
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
