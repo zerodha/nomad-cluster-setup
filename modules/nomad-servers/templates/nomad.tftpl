@@ -38,6 +38,6 @@ server {
   bootstrap_expect = "${nomad_bootstrap_expect}"
   encrypt          = "${nomad_gossip_encrypt_key}"
   server_join {
-    retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
+    retry_join = ${nomad_retry_join}
   }
 }

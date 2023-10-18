@@ -13,11 +13,9 @@ resource "aws_launch_template" "nomad_server" {
     nomad_acl_enable          = var.nomad_acl_enable
     nomad_server_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc                 = var.cluster_name
-      aws_region               = var.aws_region
+      nomad_retry_join         = jsonencode([for region in var.aws_regions : "provider=aws region=${region} tag_key=nomad_ec2_join tag_value=${var.nomad_join_tag_value}"])
       nomad_bootstrap_expect   = var.nomad_bootstrap_expect
       nomad_gossip_encrypt_key = var.nomad_gossip_encrypt_key
-      nomad_join_tag_key       = "nomad_ec2_join"
-      nomad_join_tag_value     = var.nomad_join_tag_value
       nomad_acl_enable         = var.nomad_acl_enable
     })
   }))

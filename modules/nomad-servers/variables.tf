@@ -30,10 +30,10 @@ variable "autoscale_metrics" {
   ]
 }
 
-variable "aws_region" {
-  type        = string
-  description = "AWS region to deploy the Nomad cluster in"
-  default     = "ap-south-1"
+variable "aws_regions" {
+  type        = list(string)
+  description = "AWS regions to deploy the Nomad cluster in"
+  default     = ["ap-south-1"]
 }
 
 variable "cluster_name" {

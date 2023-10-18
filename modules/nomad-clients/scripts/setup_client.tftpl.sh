@@ -107,7 +107,7 @@ EOF
 client {
   enabled = true
   server_join {
-    retry_join = ["provider=aws region=ap-south-1 tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
+    retry_join = ${nomad_retry_join}
   }
   meta {
 $(for tag in "$${AWS_TAGS[@]}"; do
