@@ -81,6 +81,12 @@ variable "ebs_encryption" {
   default     = true
 }
 
+variable "enable_mem_oversubscription" {
+  description = "Whether to enable Memory Oversubscription on the cluster"
+  type        = bool
+  default     = false
+}
+
 variable "instance_count" {
   description = "Number of Nomad server instances to run"
   type        = number

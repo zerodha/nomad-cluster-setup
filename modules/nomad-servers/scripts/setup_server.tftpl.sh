@@ -140,6 +140,34 @@ bootstrap_acl() {
   fi
 }
 
+enable_mem_oversubscription() {
+  command -v jq >/dev/null 2>&1 || { log "ERROR" "jq not found in PATH. Aborting."; exit 1; }
+
+  local nomad_config
+  nomad_config=$(curl -s http://0.0.0.0:4646/v1/operator/scheduler/configuration %{ if "${nomad_acl_bootstrap_token}" != "" }-H "X-Nomad-Token: ${nomad_acl_bootstrap_token}"%{ endif })
+  if [[ "$nomad_config" == *"Permission denied"* ]]; then
+    log "ERROR" "Permission denied while enabling memory oversubscription. Please check the bootstrap token."
+  else
+    log "INFO" "Checking if Memory Over subscription is already enabled."
+    mem_oversub_enabled=$(echo "$nomad_config" | jq '.SchedulerConfig | .MemoryOversubscriptionEnabled')
+    if [ "$mem_oversub_enabled" == "false" ]; then
+      log "INFO" "Memory Oversubscription is disabled. Enabling."
+      echo "$nomad_config" | \
+        status_code=(jq '.SchedulerConfig | .MemoryOversubscriptionEnabled=true' | \
+        curl -s -X PUT --write-out %%{http_code} \
+        %{ if "${nomad_acl_bootstrap_token}" != "" }-H "X-Nomad-Token: ${nomad_acl_bootstrap_token}"%{ endif } \
+        http://0.0.0.0:4646/v1/operator/scheduler/configuration -d @-)
+      if [ "$status_code" == "200" ]; then
+        log "INFO" "Successfully enabled Memory Oversubscription!"
+      else
+        log "ERROR" "Something went wrong while updating memory oversubscription. Please run it manually."
+      fi
+    else
+      log "INFO" "Memory Oversubscription is already enabled!"
+    fi
+  fi
+}
+
 log "INFO" "Fetching EC2 Tags from AWS"
 store_tags
 
@@ -164,5 +192,10 @@ log "INFO" "Skipping ACL Bootstrap for Nomad as 'nomad_acl_enable' is not set to
 
 log "INFO" "Restarting services"
 restart_nomad
+
+%{ if enable_memory_oversubscription }
+log "INFO" "Enabling Memory Oversubscription for the cluster"
+enable_mem_oversubscription
+%{ endif }
 
 log "INFO" "Finished server initializing process! Enjoy Nomad!"
