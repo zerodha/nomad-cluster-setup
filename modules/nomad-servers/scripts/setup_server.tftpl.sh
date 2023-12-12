@@ -136,7 +136,7 @@ tls {
   key_file  = "global-server-nomad-key.pem"
 
   verify_server_hostname = true
-  verify_https_client    = true
+  verify_https_client    = ${tls_http_enable}
 }
 EOF
 }
