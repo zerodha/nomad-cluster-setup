@@ -116,6 +116,31 @@ wait_for_leader() {
   return 1
 }
 
+add_tls_to_nomad() {
+  cat <<EOF >/etc/nomad.d/nomad-agent-ca.pem
+  ${base64decode(tls_certificates.ca_file)}
+EOF
+  cat <<EOF >/etc/nomad.d/global-server-nomad.pem
+  ${base64decode(tls_certificates.cert_file)}
+EOF
+  cat <<EOF >/etc/nomad.d/global-server-nomad-key.pem
+  ${base64decode(tls_certificates.key_file)}
+EOF
+  cat <<EOF >>/etc/nomad.d/tls.hcl
+tls {
+  http = ${tls_http_enable}
+  rpc  = ${tls_rpc_enable}
+
+  ca_file   = "nomad-agent-ca.pem"
+  cert_file = "global-server-nomad.pem"
+  key_file  = "global-server-nomad-key.pem"
+
+  verify_server_hostname = true
+  verify_https_client    = true
+}
+EOF
+}
+
 bootstrap_acl() {
   # Get the IP address of this node.
   local ip_address
@@ -154,6 +179,11 @@ start_nomad
 
 log "INFO" "Waiting for Nomad to be ready"
 wait_for_leader
+
+%{ if enable_tls }
+log "INFO" "Enabling TLS for Nomad Server"
+add_tls_to_nomad
+%{ endif }
 
 %{ if nomad_acl_enable }
 log "INFO" "Bootstrapping ACL for Nomad"

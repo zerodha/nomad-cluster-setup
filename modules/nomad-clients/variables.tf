@@ -70,6 +70,38 @@ variable "enable_docker_plugin" {
   default     = true
 }
 
+variable "enable_tls" {
+  description = "Whether to enable TLS on client nodes"
+  type        = bool
+  default     = false
+}
+
+variable "tls_certificates" {
+  description = "Base64 encoded certificate files to use for Nomad Client TLS"
+  type = object({
+    ca_file   = string
+    cert_file = string
+    key_file  = string
+  })
+  default = {
+    ca_file   = ""
+    cert_file = ""
+    key_file  = ""
+  }
+}
+
+variable "tls_http_enable" {
+  description = "Enable TLS over HTTP for Nomad Client. Setting this option requires the end-user to set NOMAD_TLS* variables while accessing the CLI"
+  type        = bool
+  default     = false
+}
+
+variable "tls_rpc_enable" {
+  description = "Enable TLS over RPC for Nomad Clients. This is required for intra-client mTLS."
+  type        = bool
+  default     = true
+}
+
 variable "iam_instance_profile" {
   description = "Name of the existing IAM Instance Profile to use"
   type        = string
