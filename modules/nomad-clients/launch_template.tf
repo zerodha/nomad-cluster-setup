@@ -12,6 +12,10 @@ resource "aws_launch_template" "nomad_client" {
   user_data = base64encode(templatefile("${path.module}/scripts/setup_client.tftpl.sh", {
     route_53_resolver_address = var.route_53_resolver_address
     enable_docker_plugin      = var.enable_docker_plugin
+    enable_tls                = var.enable_tls
+    tls_certificates          = var.tls_certificates
+    tls_http_enable           = var.tls_http_enable
+    tls_rpc_enable            = var.tls_rpc_enable
     nomad_join_tag_key        = "nomad_ec2_join"
     nomad_join_tag_value      = var.nomad_join_tag_value
     nomad_client_cfg = templatefile("${path.module}/templates/nomad.tftpl", {

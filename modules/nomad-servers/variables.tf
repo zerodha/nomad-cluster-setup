@@ -81,6 +81,38 @@ variable "ebs_encryption" {
   default     = true
 }
 
+variable "enable_tls" {
+  description = "Whether to enable TLS on client nodes"
+  type        = bool
+  default     = false
+}
+
+variable "tls_certificates" {
+  description = "Base64 encoded certificate files to use for Nomad Server TLS"
+  type = object({
+    ca_file   = string
+    cert_file = string
+    key_file  = string
+  })
+  default = {
+    ca_file   = ""
+    cert_file = ""
+    key_file  = ""
+  }
+}
+
+variable "tls_http_enable" {
+  description = "Enable TLS over HTTP for Nomad Server. Setting this option requires the end-user to set NOMAD_TLS* variables while accessing the CLI"
+  type        = bool
+  default     = false
+}
+
+variable "tls_rpc_enable" {
+  description = "Enable TLS over RPC for Nomad CLI. This is required for intra-client mTLS."
+  type        = bool
+  default     = true
+}
+
 variable "instance_count" {
   description = "Number of Nomad server instances to run"
   type        = number

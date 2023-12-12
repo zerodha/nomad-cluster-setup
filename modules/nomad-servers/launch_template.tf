@@ -11,6 +11,10 @@ resource "aws_launch_template" "nomad_server" {
   user_data = base64encode(templatefile("${path.module}/scripts/setup_server.tftpl.sh", {
     nomad_acl_bootstrap_token = var.nomad_acl_bootstrap_token
     nomad_acl_enable          = var.nomad_acl_enable
+    enable_tls                = var.enable_tls
+    tls_certificates          = var.tls_certificates
+    tls_http_enable           = var.tls_http_enable
+    tls_rpc_enable            = var.tls_rpc_enable
     nomad_server_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc                 = var.cluster_name
       aws_region               = var.aws_region

@@ -180,6 +180,31 @@ plugin "docker" {
 EOF
 }
 
+add_tls_to_nomad() {
+  cat <<EOF >/etc/nomad.d/nomad-agent-ca.pem
+  ${base64decode(tls_certificates.ca_file)}
+EOF
+  cat <<EOF >/etc/nomad.d/global-client-nomad.pem
+  ${base64decode(tls_certificates.cert_file)}
+EOF
+  cat <<EOF >/etc/nomad.d/global-client-nomad-key.pem
+  ${base64decode(tls_certificates.key_file)}
+EOF
+  cat <<EOF >>/etc/nomad.d/tls.hcl
+tls {
+  http = ${tls_http_enable}
+  rpc  = ${tls_rpc_enable}
+
+  ca_file   = "nomad-agent-ca.pem"
+  cert_file = "global-client-nomad.pem"
+  key_file  = "global-client-nomad-key.pem"
+
+  verify_server_hostname = true
+  verify_https_client    = ${tls_http_enable}
+}
+EOF
+}
+
 log "INFO" "Fetching EC2 Tags from AWS"
 store_tags
 
@@ -195,6 +220,11 @@ prepare_nomad_client_config
 %{ if enable_docker_plugin }
 log "INFO" "Adding docker config to Nomad"
 add_docker_to_nomad
+%{ endif }
+
+%{ if enable_tls }
+log "INFO" "Enabling TLS for Nomad Client"
+add_tls_to_nomad
 %{ endif }
 
 log "INFO" "Starting Nomad service"
