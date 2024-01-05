@@ -83,7 +83,9 @@ set_hostname() {
 
 # Increase the file limit
 modify_nomad_systemd_config() {
-  sudo sed -i 's/LimitNOFILE=65536/LimitNOFILE=900000/' /lib/systemd/system/nomad.service
+  if [ ${nomad_file_limit} > 65536 ]; then
+    sudo sed -i '/^LimitNOFILE/s/=.*$/=${nomad_file_limit}/' /lib/systemd/system/nomad.service
+  fi
 }
 
 # Enables nomad systemd service

@@ -20,6 +20,7 @@ resource "aws_launch_template" "nomad_server" {
       nomad_join_tag_value     = var.nomad_join_tag_value
       nomad_acl_enable         = var.nomad_acl_enable
     })
+    nomad_file_limit = var.nomad_file_limit
   }))
 
   metadata_options {
