@@ -87,8 +87,16 @@ search ap-south-1.compute.internal
 EOF
 }
 
+# Increase the file limit
+modify_nomad_systemd_config() {
+  if [ ${nomad_file_limit} > 65536 ]; then
+    sudo sed -i '/^LimitNOFILE/s/=.*$/=${nomad_file_limit}/' /lib/systemd/system/nomad.service
+  fi
+}
+
 # Enables nomad systemd service
 start_nomad() {
+  sudo systemctl daemon-reload
   sudo systemctl enable --now nomad
 }
 
@@ -196,6 +204,9 @@ prepare_nomad_client_config
 log "INFO" "Adding docker config to Nomad"
 add_docker_to_nomad
 %{ endif }
+
+log "INFO" "Modify Nomad systemd config"
+modify_nomad_systemd_config
 
 log "INFO" "Starting Nomad service"
 start_nomad

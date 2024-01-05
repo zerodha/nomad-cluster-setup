@@ -168,3 +168,9 @@ variable "vpc" {
   type        = string
   nullable    = false
 }
+
+variable "nomad_file_limit" {
+  description = "Value for LimitNOFILE in nomad systemd config"
+  type        = number
+  default     = 900000
+}

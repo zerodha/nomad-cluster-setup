@@ -37,6 +37,7 @@ resource "aws_instance" "nomad_client" {
       nomad_dc         = var.cluster_name
       nomad_acl_enable = var.nomad_acl_enable
     })
+    nomad_file_limit = var.nomad_file_limit
   }))
 
   tags = {
