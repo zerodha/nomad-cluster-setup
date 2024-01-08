@@ -54,6 +54,7 @@
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
 | <a name="input_nomad_alb_hostname"></a> [nomad\_alb\_hostname](#input\_nomad\_alb\_hostname) | ALB hostname to use for accessing the Nomad web UI | `string` | `"nomad.example.internal"` | no |
 | <a name="input_nomad_bootstrap_expect"></a> [nomad\_bootstrap\_expect](#input\_nomad\_bootstrap\_expect) | Number of instances expected to bootstrap a new Nomad cluster | `number` | `3` | no |
+| <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
 | <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | Value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_nomad_server_incoming_ips"></a> [nomad\_server\_incoming\_ips](#input\_nomad\_server\_incoming\_ips) | List of IPs to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
