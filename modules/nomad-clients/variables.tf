@@ -198,3 +198,9 @@ variable "nomad_acl_enable" {
   type        = bool
   default     = true
 }
+
+variable "nomad_file_limit" {
+  description = "Value for LimitNOFILE in nomad systemd config"
+  type        = number
+  default     = 900000
+}
