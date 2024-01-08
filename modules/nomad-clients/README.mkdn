@@ -55,6 +55,7 @@ No modules.
 | <a name="input_instance_min_count"></a> [instance\_min\_count](#input\_instance\_min\_count) | Minimum number of Nomad clients to run | `number` | `0` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad clients | `string` | `"c5a.large"` | no |
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
+| <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | The value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_override_instance_types"></a> [override\_instance\_types](#input\_override\_instance\_types) | List of instance types to define in the mixed\_instances\_policy block | `list(string)` | `[]` | no |
 | <a name="input_route_53_resolver_address"></a> [route\_53\_resolver\_address](#input\_route\_53\_resolver\_address) | Route53 resolver address for querying DNS inside exec tasks | `string` | n/a | yes |
