@@ -48,7 +48,7 @@ resource "aws_launch_template" "nomad_client" {
     resource_type = "instance"
 
     tags = {
-      Name = "${var.cluster_name}-client-${var.client_name}"
+      Name = var.client_name
     }
   }
 

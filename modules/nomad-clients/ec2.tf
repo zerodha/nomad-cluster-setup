@@ -41,7 +41,7 @@ resource "aws_instance" "nomad_client" {
   }))
 
   tags = {
-    Name           = "${var.cluster_name}-client-${var.client_name}-${count.index + 1}"
+    Name           = "${var.client_name}-${count.index + 1}"
     role           = "nomad-client"
     nomad_client   = var.client_name
     nomad_ec2_join = var.nomad_join_tag_value
