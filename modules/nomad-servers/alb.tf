@@ -11,7 +11,7 @@ module "alb" {
 
   vpc_id          = var.vpc
   subnets         = var.subnets
-  security_groups = [aws_security_group.alb[0].id]
+  security_groups = concat([aws_security_group.alb[0].id], var.nomad_server_incoming_security_groups)
 
   target_groups = [
     {
@@ -99,7 +99,7 @@ resource "aws_security_group" "alb" {
       to_port          = var.alb_certificate_arn == "" ? 80 : 443
       cidr_blocks      = var.nomad_server_incoming_ips
       ipv6_cidr_blocks = []
-      security_groups  = var.nomad_server_incoming_security_groups
+      security_groups  = []
       prefix_list_ids  = []
       self             = false
       protocol         = "tcp"
