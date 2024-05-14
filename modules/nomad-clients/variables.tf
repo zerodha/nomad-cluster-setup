@@ -204,3 +204,12 @@ variable "nomad_file_limit" {
   type        = number
   default     = 900000
 }
+
+variable "nomad_client_exec_host_volumes" {
+  description = "A map of host volumes to configure for the Nomad client"
+  type = map(object({
+    path      = string
+    read_only = bool
+  }))
+  default = {}
+}

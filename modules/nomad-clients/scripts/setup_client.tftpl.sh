@@ -188,6 +188,28 @@ plugin "docker" {
 EOF
 }
 
+
+
+add_host_volumes_to_nomad() {
+  cat <<EOF >>/etc/nomad.d/nomad.hcl
+client {
+  %{ for name, volume in nomad_client_exec_host_volumes }
+  host_volume "${name}" {
+    path      = "${volume.path}"
+    read_only = ${volume.read_only}
+  }
+  %{ endfor }
+}
+EOF
+
+  # Create directories if they don't exist
+  %{ for name, volume in nomad_client_exec_host_volumes }
+  if [ ! -d "${volume.path}" ]; then
+    mkdir -p "${volume.path}"
+  fi
+  %{ endfor }
+}
+
 log "INFO" "Fetching EC2 Tags from AWS"
 store_tags
 
@@ -204,6 +226,14 @@ prepare_nomad_client_config
 log "INFO" "Adding docker config to Nomad"
 add_docker_to_nomad
 %{ endif }
+
+%{ if length(nomad_client_exec_host_volumes) > 0 }
+log "INFO" "Adding host volumes config to Nomad"
+add_host_volumes_to_nomad
+%{ else }
+log "INFO" "No host volumes configured for Nomad client"
+%{ endif }
+
 
 log "INFO" "Modify Nomad systemd config"
 modify_nomad_systemd_config
