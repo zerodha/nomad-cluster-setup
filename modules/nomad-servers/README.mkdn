@@ -11,6 +11,7 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
 
 ## Modules
 
@@ -31,6 +32,7 @@
 | [aws_security_group.nomad_agent](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_ec2_instance_type.type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [cloudinit_config.config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
 
 ## Inputs
 
@@ -47,6 +49,7 @@
 | <a name="input_default_security_groups"></a> [default\_security\_groups](#input\_default\_security\_groups) | List of security group IDs to assign to the Nomad server instances | `list(string)` | `[]` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
+| <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
 | <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of Nomad server instances to run | `number` | `3` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad server instances | `string` | `"c5a.large"` | no |
