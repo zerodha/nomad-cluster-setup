@@ -213,3 +213,9 @@ variable "nomad_client_exec_host_volumes" {
   }))
   default = {}
 }
+
+variable "extra_script" {
+  description = "Path to custom script to be run as part of cloud-init"
+  type = string
+  default = ""
+}

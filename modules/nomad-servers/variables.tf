@@ -174,3 +174,9 @@ variable "nomad_file_limit" {
   type        = number
   default     = 900000
 }
+
+variable "extra_script" {
+  description = "Path to custom script to be run as part of cloud-init"
+  type = string
+  default = ""
+}
