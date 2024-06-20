@@ -13,9 +13,10 @@ resource "aws_launch_template" "nomad_client" {
 
   metadata_options {
     http_endpoint               = "enabled"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = var.http_put_response_hop_limit
     instance_metadata_tags      = "enabled"
   }
+
   block_device_mappings {
     device_name = "/dev/sda1"
 

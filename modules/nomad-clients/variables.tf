@@ -216,6 +216,12 @@ variable "nomad_client_exec_host_volumes" {
 
 variable "extra_script" {
   description = "Path to custom script to be run as part of cloud-init"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
+}
+
+variable "http_put_response_hop_limit" {
+  description = "The hop limit for HTTP PUT response for the EC2 instance metadata service"
+  type        = number
+  default     = 2
 }
