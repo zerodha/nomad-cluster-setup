@@ -12,6 +12,7 @@ resource "aws_launch_template" "nomad_client" {
   user_data = base64encode(data.cloudinit_config.config.rendered)
 
   metadata_options {
+    http_tokens                 = var.http_tokens
     http_endpoint               = "enabled"
     http_put_response_hop_limit = var.http_put_response_hop_limit
     instance_metadata_tags      = "enabled"
