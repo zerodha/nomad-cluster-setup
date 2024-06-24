@@ -229,5 +229,5 @@ variable "http_put_response_hop_limit" {
 variable "http_tokens" {
   description = "Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'."
   type        = string
-  default     = "no-preference"
+  default     = "optional"
 }
