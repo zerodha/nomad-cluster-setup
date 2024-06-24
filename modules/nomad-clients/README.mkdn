@@ -52,7 +52,7 @@ No modules.
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks. | `number` | `180` | no |
 | <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
-| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"no-preference"` | no |
+| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | Name of the existing IAM Instance Profile to use | `string` | `""` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
 | <a name="input_instance_desired_count"></a> [instance\_desired\_count](#input\_instance\_desired\_count) | Desired number of Nomad clients to run | `number` | `1` | no |
