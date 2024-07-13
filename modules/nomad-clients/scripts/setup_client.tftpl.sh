@@ -94,6 +94,21 @@ modify_nomad_systemd_config() {
   fi
 }
 
+# Function to check and load the bridge module
+load_bridge() {
+  if ! lsmod | grep -q "^bridge"; then
+    log "INFO" "Bridge module not loaded. Attempting to load..."
+    if ! modprobe bridge; then
+      log "ERROR" "Failed to load bridge module. This might affect network functionality."
+    else
+      log "INFO" "Bridge module loaded successfully."
+    fi
+  else
+    log "INFO" "Bridge module is already loaded."
+  fi
+}
+
+
 # Enables nomad systemd service
 start_nomad() {
   sudo systemctl daemon-reload
@@ -133,7 +148,7 @@ $(for tag in "$${AWS_TAGS[@]}"; do
     "/lib64"          = "/lib64"
     "/sbin"           = "/sbin"
     "/usr"            = "/usr"
-    
+
     "/etc/ld.so.cache"  = "/etc/ld.so.cache"
     "/etc/ld.so.conf"   = "/etc/ld.so.conf"
     "/etc/ld.so.conf.d" = "/etc/ld.so.conf.d"
@@ -218,6 +233,9 @@ set_hostname
 
 log "INFO" "Prepare DNS config for exec tasks"
 prepare_dns_config
+
+log "INFO" "Checking and loading bridge module"
+load_bridge
 
 log "INFO" "Rendering client config for nomad"
 prepare_nomad_client_config
