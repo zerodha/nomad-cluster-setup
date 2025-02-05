@@ -83,7 +83,7 @@ set_hostname() {
 prepare_dns_config() {
   cat <<EOF >/etc/nomad.d/route53_resolv.conf
 nameserver ${route_53_resolver_address}
-search ap-south-1.compute.internal
+search ${aws_region}.compute.internal
 EOF
 }
 
@@ -130,7 +130,7 @@ EOF
 client {
   enabled = true
   server_join {
-    retry_join = ["provider=aws region=ap-south-1 tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
+    retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }
   meta {
 $(for tag in "$${AWS_TAGS[@]}"; do
