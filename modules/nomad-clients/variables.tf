@@ -6,6 +6,13 @@ variable "ami" {
   nullable    = false
 }
 
+variable "aws_region" {
+  description = "AWS region to deploy the cluster in"
+  type        = string
+  default     = "ap-south-1"
+  nullable    = false
+}
+
 variable "client_name" {
   description = "Name of the Auto Scaling Group (ASG) nodes deployed as Nomad clients"
   type        = string
