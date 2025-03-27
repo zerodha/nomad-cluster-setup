@@ -221,6 +221,18 @@ variable "nomad_client_exec_host_volumes" {
   default = {}
 }
 
+variable "ssh_public_keys" {
+  description = "List of SSH public keys to add to authorized_keys"
+  type        = list(string)
+  default     = []
+}
+
+variable "ssh_user" {
+  description = "The system user to add SSH keys for"
+  type        = string
+  default     = "ubuntu"
+}
+
 variable "extra_script" {
   description = "Path to custom script to be run as part of cloud-init"
   type        = string
