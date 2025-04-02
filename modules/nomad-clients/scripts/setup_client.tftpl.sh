@@ -6,6 +6,7 @@
 # - Prepares DNS configuration for exec tasks
 # - Renders the Nomad client configuration
 # - Optionally, adds Docker configuration to Nomad if the 'enable_docker_plugin' variable is set to true
+# - Adds SSH public keys to authorized_keys if provided
 # - Starts the Nomad service
 
 set -Eeuo pipefail
@@ -108,6 +109,60 @@ load_bridge() {
   fi
 }
 
+# Add SSH public keys to authorized_keys file
+add_ssh_keys() {
+  # Use the configured SSH user or default to "ubuntu"
+  SSH_USER="${ssh_user}"
+
+  # Check if the user exists
+  if ! id "$SSH_USER" &>/dev/null; then
+    log "ERROR" "User $SSH_USER does not exist. Cannot add SSH keys."
+    return 1
+  fi
+
+  # Get user's home directory from /etc/passwd
+  USER_HOME=$(getent passwd "$SSH_USER" | cut -d: -f6)
+  if [ -z "$USER_HOME" ]; then
+    log "ERROR" "Could not determine home directory for user $SSH_USER"
+    return 1
+  fi
+
+  SSH_DIR="$USER_HOME/.ssh"
+  AUTH_KEYS_FILE="$SSH_DIR/authorized_keys"
+
+  log "INFO" "Adding SSH keys for user $SSH_USER (home: $USER_HOME)"
+
+  # Ensure .ssh directory exists and has correct permissions
+  if [ ! -d "$SSH_DIR" ]; then
+    mkdir -p "$SSH_DIR"
+    log "INFO" "Created $SSH_DIR directory"
+  fi
+  chmod 700 "$SSH_DIR"
+  chown "$SSH_USER:$SSH_USER" "$SSH_DIR"
+
+  # Create authorized_keys file if it doesn't exist
+  if [ ! -f "$AUTH_KEYS_FILE" ]; then
+    touch "$AUTH_KEYS_FILE"
+    log "INFO" "Created $AUTH_KEYS_FILE file"
+  fi
+  chmod 600 "$AUTH_KEYS_FILE"
+  chown "$SSH_USER:$SSH_USER" "$AUTH_KEYS_FILE"
+
+  # Add each provided SSH public key
+  %{ for key in ssh_public_keys }
+  if ! grep -q "${key}" "$AUTH_KEYS_FILE"; then
+    echo "${key}" >> "$AUTH_KEYS_FILE"
+    log "INFO" "Added SSH public key to authorized_keys for $SSH_USER"
+  else
+    log "INFO" "SSH public key already exists in authorized_keys for $SSH_USER"
+  fi
+  %{ endfor }
+
+  # Ensure the authorized_keys file has the correct ownership and permissions
+  # This is crucial since the script runs as root
+  chmod 600 "$AUTH_KEYS_FILE"
+  chown "$SSH_USER:$SSH_USER" "$AUTH_KEYS_FILE"
+}
 
 # Enables nomad systemd service
 start_nomad() {
@@ -203,8 +258,6 @@ plugin "docker" {
 EOF
 }
 
-
-
 add_host_volumes_to_nomad() {
   cat <<EOF >>/etc/nomad.d/nomad.hcl
 client {
@@ -252,6 +305,12 @@ add_host_volumes_to_nomad
 log "INFO" "No host volumes configured for Nomad client"
 %{ endif }
 
+%{ if length(ssh_public_keys) > 0 }
+log "INFO" "Adding SSH public keys to authorized_keys"
+add_ssh_keys || log "WARN" "Failed to add SSH keys"
+%{ else }
+log "INFO" "No SSH public keys provided to add"
+%{ endif }
 
 log "INFO" "Modify Nomad systemd config"
 modify_nomad_systemd_config
