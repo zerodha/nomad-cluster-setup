@@ -66,6 +66,8 @@ No modules.
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | The value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_override_instance_types"></a> [override\_instance\_types](#input\_override\_instance\_types) | List of instance types to define in the mixed\_instances\_policy block | `list(string)` | `[]` | no |
 | <a name="input_route_53_resolver_address"></a> [route\_53\_resolver\_address](#input\_route\_53\_resolver\_address) | Route53 resolver address for querying DNS inside exec tasks | `string` | n/a | yes |
+| <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | List of SSH public keys to add to authorized\_keys | `list(string)` | `[]` | no |
+| <a name="input_ssh_user"></a> [ssh\_user](#input\_ssh\_user) | The system user to add SSH keys for | `string` | `"ubuntu"` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
 | <a name="input_target_group_arns"></a> [target\_group\_arns](#input\_target\_group\_arns) | List of target groups assigned in the ALB to connect to the ASG | `list(string)` | `[]` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | AWS Virtual Private Cloud (VPC) to deploy all resources in | `string` | n/a | yes |
