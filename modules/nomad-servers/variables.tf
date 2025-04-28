@@ -145,6 +145,12 @@ variable "nomad_join_tag_value" {
   nullable    = false
 }
 
+variable "nomad_raft_backup_bucket" {
+  description = "The S3 bucket to use for backing up Nomad RAFT snapshot"
+  type        = string
+  default     = ""
+}
+
 variable "nomad_server_incoming_ips" {
   description = "List of IPs to allow incoming connections from to Nomad server ALBs"
   type        = list(string)
