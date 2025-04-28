@@ -83,7 +83,7 @@ set_hostname() {
 
 # Increase the file limit
 modify_nomad_systemd_config() {
-  if [ ${nomad_file_limit} > 65536 ]; then
+  if [ "${nomad_file_limit}" -gt "65536" ]; then
     sudo sed -i '/^LimitNOFILE/s/=.*$/=${nomad_file_limit}/' /lib/systemd/system/nomad.service
   fi
 }
@@ -148,6 +148,127 @@ bootstrap_acl() {
   fi
 }
 
+# Sets up the backup script and systemd timer for Nomad state backups
+setup_state_backup() {
+  log "INFO" "Setting up Nomad state backup to S3"
+
+  # Create backup script
+  cat <<EOF >/usr/local/bin/nomad-backup.sh
+#!/usr/bin/env bash
+
+set -e
+
+BACKUP_FILE="nomad-snapshot-\$(date +%Y%m%d-%H%M%S).snap"
+S3_BUCKET="${nomad_raft_backup_bucket}"
+CLUSTER_NAME="${nomad_dc}"
+LOG_FILE="/var/log/nomad-backup.log"
+%{ if nomad_acl_enable }
+NOMAD_TOKEN="${nomad_acl_bootstrap_token}"
+%{ endif }
+
+# Log to the file and console
+log() {
+  echo "\$(date +"%Y-%m-%d %H:%M:%S") [\$1] \$2" | tee -a \$LOG_FILE
+}
+
+# Check if this node is the leader
+is_leader() {
+  %{ if nomad_acl_enable }
+  LEADER_CHECK=\$(NOMAD_TOKEN=\$NOMAD_TOKEN nomad agent-info | grep "leader = true" || echo "")
+  %{ else }
+  LEADER_CHECK=\$(nomad agent-info | grep "leader = true" || echo "")
+  %{ endif }
+
+  if [ -n "\$LEADER_CHECK" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Main backup function
+perform_backup() {
+  log "INFO" "Starting Nomad state backup"
+
+  # Check if we're the leader
+  if ! is_leader; then
+    log "INFO" "This node is not the leader, skipping backup"
+    exit 0
+  fi
+
+  log "INFO" "This node is the leader, performing backup"
+
+  # Create temp directory
+  TEMP_DIR=\$(mktemp -d)
+  cd \$TEMP_DIR
+
+  # Create snapshot
+  log "INFO" "Creating Nomad snapshot"
+  %{ if nomad_acl_enable }
+  NOMAD_TOKEN=\$NOMAD_TOKEN nomad operator snapshot save \$BACKUP_FILE
+  %{ else }
+  nomad operator snapshot save \$BACKUP_FILE
+  %{ endif }
+
+  # Compress the snapshot
+  log "INFO" "Compressing snapshot"
+  gzip \$BACKUP_FILE
+
+  # Upload to S3
+  log "INFO" "Uploading snapshot to S3"
+  aws s3 cp "\$BACKUP_FILE.gz" "s3://\$S3_BUCKET/\$CLUSTER_NAME/\$BACKUP_FILE.gz"
+
+  # Clean up
+  log "INFO" "Cleaning up temporary files"
+  rm -rf \$TEMP_DIR
+
+  log "INFO" "Backup completed successfully"
+}
+
+# Execute the backup
+perform_backup
+EOF
+
+  # Make the script executable
+  chmod +x /usr/local/bin/nomad-backup.sh
+
+  # Create systemd timer unit
+  cat <<EOF >/etc/systemd/system/nomad-backup.timer
+[Unit]
+Description=Run Nomad backup twice daily
+Requires=nomad-backup.service
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+  # Create systemd service unit
+  cat <<EOF >/etc/systemd/system/nomad-backup.service
+[Unit]
+Description=Nomad State Backup Service
+After=nomad.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/nomad-backup.sh
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # Enable and start the timer
+  systemctl daemon-reload
+  systemctl enable nomad-backup.timer
+  systemctl start nomad-backup.timer
+
+  log "INFO" "Nomad state backup has been configured successfully"
+}
+
 log "INFO" "Fetching EC2 Tags from AWS"
 store_tags
 
@@ -171,6 +292,13 @@ log "INFO" "Bootstrapping ACL for Nomad"
 bootstrap_acl
 %{else}
 log "INFO" "Skipping ACL Bootstrap for Nomad as 'nomad_acl_enable' is not set to true"
+%{ endif }
+
+%{ if nomad_raft_backup_bucket != "" }
+log "INFO" "Setting up state backup to S3"
+setup_state_backup
+%{else}
+log "INFO" "Skipping state backup setup as 'nomad_raft_backup_bucket' is not defined"
 %{ endif }
 
 log "INFO" "Restarting services"

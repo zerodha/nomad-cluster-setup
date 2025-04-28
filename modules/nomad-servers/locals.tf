@@ -3,6 +3,9 @@ locals {
     nomad_acl_bootstrap_token = var.nomad_acl_bootstrap_token
     nomad_acl_enable          = var.nomad_acl_enable
     nomad_file_limit          = var.nomad_file_limit
+    nomad_dc                  = var.cluster_name
+    nomad_raft_backup_bucket  = var.nomad_raft_backup_bucket
+
     nomad_server_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc                 = var.cluster_name
       aws_region               = var.aws_region
