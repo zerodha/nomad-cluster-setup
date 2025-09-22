@@ -45,8 +45,10 @@ No modules.
 | <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Key-value pairs of tags to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
 | <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policies to assign to the Nomad clients | `list(string)` | `[]` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
+| <a name="input_ebs_iops"></a> [ebs\_iops](#input\_ebs\_iops) | The amount of provisioned IOPS for the EBS volume (only valid for gp3, io1, io2) | `number` | `3000` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of custom tags to be assigned to the EBS volumes | `map(string)` | `{}` | no |
 | <a name="input_ebs_volume_size"></a> [ebs\_volume\_size](#input\_ebs\_volume\_size) | The size of the EBS volume in gigabytes | `number` | `100` | no |
+| <a name="input_ebs_volume_type"></a> [ebs\_volume\_type](#input\_ebs\_volume\_type) | The type of EBS volume (gp2, gp3, io1, io2, sc1, st1) | `string` | `"gp3"` | no |
 | <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
 | <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
