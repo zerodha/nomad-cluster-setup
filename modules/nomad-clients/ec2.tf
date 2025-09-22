@@ -12,7 +12,8 @@ resource "aws_instance" "nomad_client" {
     encrypted             = var.ebs_encryption
     delete_on_termination = true
     volume_size           = var.ebs_volume_size
-    volume_type           = "gp3"
+    volume_type           = var.ebs_volume_type
+    iops                  = var.ebs_iops
     tags = merge(
       {
         Name    = "${var.cluster_name}-client-${var.client_name}-root-${count.index + 1}"

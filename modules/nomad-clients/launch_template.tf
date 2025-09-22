@@ -25,7 +25,8 @@ resource "aws_launch_template" "nomad_client" {
       encrypted             = var.ebs_encryption
       delete_on_termination = true
       volume_size           = var.ebs_volume_size
-      volume_type           = "gp3"
+      volume_type           = var.ebs_volume_type
+      iops                  = var.ebs_iops
     }
   }
   iam_instance_profile {

@@ -71,6 +71,18 @@ variable "ebs_tags" {
   default     = {}
 }
 
+variable "ebs_volume_type" {
+  description = "The type of EBS volume (gp2, gp3, io1, io2, sc1, st1)"
+  type        = string
+  default     = "gp3"
+}
+
+variable "ebs_iops" {
+  description = "The amount of provisioned IOPS for the EBS volume (only valid for gp3, io1, io2)"
+  type        = number
+  default     = 3000
+}
+
 variable "enable_docker_plugin" {
   description = "Whether to enable the Docker plugin on the client nodes"
   type        = bool
