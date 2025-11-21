@@ -99,17 +99,17 @@ resource "aws_security_group" "alb" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb" {
-  count             = var.create_alb ? 1 : 0
+resource "aws_vpc_security_group_ingress_rule" "ir_alb" {
+  count             = var.create_alb ? length(var.nomad_server_incoming_ips) : 0
   security_group_id = aws_security_group.alb[0].id
   description       = "Allow access to Nomad ALB"
   from_port         = var.alb_certificate_arn == "" ? 80 : 443
   to_port           = var.alb_certificate_arn == "" ? 80 : 443
   ip_protocol       = "tcp"
-  cidr_ipv4         = var.nomad_server_incoming_ips
+  cidr_ipv4         = var.nomad_server_incoming_ips[count.index]
 }
 
-resource "aws_vpc_security_group_egress_rule" "alb" {
+resource "aws_vpc_security_group_egress_rule" "er_alb" {
   count             = var.create_alb ? 1 : 0
   security_group_id = aws_security_group.alb[0].id
   description       = "Allow all outgoing traffic"
@@ -117,7 +117,7 @@ resource "aws_vpc_security_group_egress_rule" "alb" {
   cidr_ipv4         = "0.0.0.0/0"
 }
 
-resource "aws_vpc_security_group_egress_rule" "alb_ipv6" {
+resource "aws_vpc_security_group_egress_rule" "er_alb_ipv6" {
   count             = var.create_alb ? 1 : 0
   security_group_id = aws_security_group.alb[0].id
   description       = "Allow all outgoing traffic (IPv6)"
