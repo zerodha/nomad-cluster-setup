@@ -92,36 +92,35 @@ resource "aws_security_group" "alb" {
 
   name        = "${var.cluster_name}-alb"
   description = "Security Group for ${var.cluster_name} ALB"
-  ingress = [
-    {
-      description      = "Allow access to Nomad ALB"
-      from_port        = var.alb_certificate_arn == "" ? 80 : 443
-      to_port          = var.alb_certificate_arn == "" ? 80 : 443
-      cidr_blocks      = var.nomad_server_incoming_ips
-      ipv6_cidr_blocks = []
-      security_groups  = []
-      prefix_list_ids  = []
-      self             = false
-      protocol         = "tcp"
-    }
-  ]
-
-  egress = [
-    {
-      description      = "Allow all outgoing traffic"
-      from_port        = 0
-      to_port          = 0
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = false
-    }
-  ]
 
   vpc_id = var.vpc
   tags = {
     Name = "${var.cluster_name}-alb"
   }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb" {
+  count             = var.create_alb ? 1 : 0
+  security_group_id = aws_security_group.alb[0].id
+  description       = "Allow access to Nomad ALB"
+  from_port         = var.alb_certificate_arn == "" ? 80 : 443
+  to_port           = var.alb_certificate_arn == "" ? 80 : 443
+  ip_protocol       = "tcp"
+  cidr_ipv4         = var.nomad_server_incoming_ips
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb" {
+  count             = var.create_alb ? 1 : 0
+  security_group_id = aws_security_group.alb[0].id
+  description       = "Allow all outgoing traffic"
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_ipv6" {
+  count             = var.create_alb ? 1 : 0
+  security_group_id = aws_security_group.alb[0].id
+  description       = "Allow all outgoing traffic (IPv6)"
+  ip_protocol       = "-1"
+  cidr_ipv6         = "::/0"
 }
