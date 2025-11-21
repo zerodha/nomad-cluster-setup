@@ -38,9 +38,12 @@ resource "aws_launch_template" "nomad_server" {
   tag_specifications {
     resource_type = "instance"
 
-    tags = {
-      Name = "${var.cluster_name}-server"
-    }
+    tags = merge(
+      {
+        Name = "${var.cluster_name}-server"
+      },
+      var.ec2_tags
+    )
   }
 
   tag_specifications {

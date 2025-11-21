@@ -40,9 +40,12 @@ resource "aws_launch_template" "nomad_client" {
   tag_specifications {
     resource_type = "instance"
 
-    tags = {
-      Name = var.client_name
-    }
+    tags = merge(
+      {
+        Name = var.client_name
+      },
+      var.ec2_tags
+    )
   }
 
   tag_specifications {

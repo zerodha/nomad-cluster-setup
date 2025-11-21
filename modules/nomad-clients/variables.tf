@@ -71,6 +71,12 @@ variable "ebs_tags" {
   default     = {}
 }
 
+variable "ec2_tags" {
+  description = "A map of custom tags to be assigned to the EC2 instances"
+  type        = map(string)
+  default     = {}
+}
+
 variable "ebs_volume_type" {
   description = "The type of EBS volume (gp2, gp3, io1, io2, sc1, st1)"
   type        = string

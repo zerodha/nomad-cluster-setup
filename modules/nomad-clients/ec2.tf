@@ -32,12 +32,15 @@ resource "aws_instance" "nomad_client" {
 
   user_data_base64 = base64encode(data.cloudinit_config.config.rendered)
 
-  tags = {
-    Name           = "${var.client_name}-${count.index + 1}"
-    role           = "nomad-client"
-    nomad_client   = var.client_name
-    nomad_ec2_join = var.nomad_join_tag_value
-  }
+  tags = merge(
+    {
+      Name           = "${var.client_name}-${count.index + 1}"
+      role           = "nomad-client"
+      nomad_client   = var.client_name
+      nomad_ec2_join = var.nomad_join_tag_value
+    },
+    var.ec2_tags
+  )
 
   lifecycle {
     create_before_destroy = true
