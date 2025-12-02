@@ -75,6 +75,12 @@ variable "ebs_tags" {
   default     = {}
 }
 
+variable "ec2_tags" {
+  description = "A map of additional tags to apply to the EC2 instances"
+  type        = map(string)
+  default     = {}
+}
+
 variable "ebs_encryption" {
   description = "Enable EBS encryption"
   type        = bool
