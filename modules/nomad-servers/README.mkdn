@@ -52,6 +52,7 @@
 | <a name="input_default_security_groups"></a> [default\_security\_groups](#input\_default\_security\_groups) | List of security group IDs to assign to the Nomad server instances | `list(string)` | `[]` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
+| <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of additional tags to apply to the EC2 instances | `map(string)` | `{}` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
 | <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
