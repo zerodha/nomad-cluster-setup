@@ -16,9 +16,8 @@ resource "aws_instance" "nomad_client" {
     iops                  = var.ebs_iops
     tags = merge(
       {
-        Name            = "${var.cluster_name}-client-${var.client_name}-root-${count.index + 1}"
-        cluster         = var.cluster_name
-        aws-backup-tier = "standard"
+        Name    = "${var.cluster_name}-client-${var.client_name}-root-${count.index + 1}"
+        cluster = var.cluster_name
       },
       var.ebs_tags
     )
@@ -35,10 +34,11 @@ resource "aws_instance" "nomad_client" {
 
   tags = merge(
     {
-      Name           = "${var.client_name}-${count.index + 1}"
-      role           = "nomad-client"
-      nomad_client   = var.client_name
-      nomad_ec2_join = var.nomad_join_tag_value
+      Name            = "${var.client_name}-${count.index + 1}"
+      role            = "nomad-client"
+      nomad_client    = var.client_name
+      nomad_ec2_join  = var.nomad_join_tag_value
+      aws-backup-tier = "standard"
     },
     var.ec2_tags
   )
