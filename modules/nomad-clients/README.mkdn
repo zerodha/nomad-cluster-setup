@@ -52,6 +52,7 @@ No modules.
 | <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
 | <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of custom tags to be assigned to the EC2 instances | `map(string)` | `{}` | no |
 | <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
+| <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks. | `number` | `180` | no |
 | <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
@@ -73,6 +74,9 @@ No modules.
 | <a name="input_ssh_user"></a> [ssh\_user](#input\_ssh\_user) | The system user to add SSH keys for | `string` | `"ubuntu"` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
 | <a name="input_target_group_arns"></a> [target\_group\_arns](#input\_target\_group\_arns) | List of target groups assigned in the ALB to connect to the ASG | `list(string)` | `[]` | no |
+| <a name="input_tls_certificates"></a> [tls\_certificates](#input\_tls\_certificates) | Base64 encoded certificate files to use for Nomad Client TLS | <pre>object({<br>    ca_file   = string<br>    cert_file = string<br>    key_file  = string<br>  })</pre> | <pre>{<br>  "ca_file": "",<br>  "cert_file": "",<br>  "key_file": ""<br>}</pre> | no |
+| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS over HTTP for Nomad Client. Setting this option requires the end-user to set NOMAD\_TLS* variables while accessing the CLI | `bool` | `false` | no |
+| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS over RPC for Nomad Clients. This is required for intra-client mTLS. | `bool` | `true` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | AWS Virtual Private Cloud (VPC) to deploy all resources in | `string` | n/a | yes |
 | <a name="input_wait_for_capacity_timeout"></a> [wait\_for\_capacity\_timeout](#input\_wait\_for\_capacity\_timeout) | Time for which Terraform waits after ASG creation to see if instances are running. | `string` | `"10m"` | no |
 
