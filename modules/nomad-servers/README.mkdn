@@ -54,6 +54,7 @@
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
 | <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of additional tags to apply to the EC2 instances | `map(string)` | `{}` | no |
 | <a name="input_enable_mem_oversubscription"></a> [enable\_mem\_oversubscription](#input\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
+| <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
 | <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
@@ -71,6 +72,9 @@
 | <a name="input_nomad_server_incoming_ips"></a> [nomad\_server\_incoming\_ips](#input\_nomad\_server\_incoming\_ips) | List of IPs to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
 | <a name="input_nomad_server_incoming_security_groups"></a> [nomad\_server\_incoming\_security\_groups](#input\_nomad\_server\_incoming\_security\_groups) | List of Security Groups to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
+| <a name="input_tls_certificates"></a> [tls\_certificates](#input\_tls\_certificates) | Base64 encoded certificate files to use for Nomad Server TLS | <pre>object({<br>    ca_file   = string<br>    cert_file = string<br>    key_file  = string<br>  })</pre> | <pre>{<br>  "ca_file": "",<br>  "cert_file": "",<br>  "key_file": ""<br>}</pre> | no |
+| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS over HTTP for Nomad Server. Setting this option requires the end-user to set NOMAD\_TLS* variables while accessing the CLI | `bool` | `false` | no |
+| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS over RPC for Nomad CLI. This is required for intra-client mTLS. | `bool` | `true` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | ID of the AWS VPC to deploy all the resources in | `string` | n/a | yes |
 
 ## Outputs
