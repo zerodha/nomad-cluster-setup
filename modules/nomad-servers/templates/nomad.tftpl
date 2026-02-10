@@ -40,4 +40,7 @@ server {
   server_join {
     retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }
+  default_scheduler_config {
+    memory_oversubscription_enabled = ${enable_mem_oversubscription}
+  }
 }
