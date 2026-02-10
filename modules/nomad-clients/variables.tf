@@ -300,3 +300,33 @@ variable "http_tokens" {
   type        = string
   default     = "optional"
 }
+
+variable "nomad_gc_interval" {
+  description = "Interval between garbage collections for Nomad client allocations"
+  type        = string
+  default     = "1m"
+}
+
+variable "nomad_gc_disk_usage_threshold" {
+  description = "Disk usage percent threshold at which the GC will mark allocations as eligible for collection"
+  type        = number
+  default     = 80
+}
+
+variable "nomad_gc_inode_usage_threshold" {
+  description = "Inode usage percent threshold at which the GC will mark allocations as eligible for collection"
+  type        = number
+  default     = 70
+}
+
+variable "nomad_gc_max_allocs" {
+  description = "Maximum number of terminal allocations that the GC will keep before forcing collection"
+  type        = number
+  default     = 50
+}
+
+variable "nomad_gc_parallel_destroys" {
+  description = "Number of parallel allocation destroys during garbage collection"
+  type        = number
+  default     = 2
+}

@@ -41,6 +41,7 @@ server {
   enabled          = true
   bootstrap_expect = "${nomad_bootstrap_expect}"
   encrypt          = "${nomad_gossip_encrypt_key}"
+  job_gc_threshold = "${nomad_job_gc_threshold}"
   server_join {
     retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }

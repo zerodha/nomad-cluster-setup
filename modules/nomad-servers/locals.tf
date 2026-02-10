@@ -16,6 +16,7 @@ locals {
       nomad_acl_enable                = var.nomad_acl_enable
       enable_mem_oversubscription     = var.enable_mem_oversubscription
       nomad_http_max_conns_per_client = var.http_max_conns_per_client
+      nomad_job_gc_threshold          = var.nomad_job_gc_threshold
     })
     nomad_file_limit = var.nomad_file_limit
   })
