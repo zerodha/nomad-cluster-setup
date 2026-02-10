@@ -33,6 +33,10 @@ telemetry {
   publish_node_metrics       = true
 }
 
+limits {
+  http_max_conns_per_client = ${http_max_conns_per_client}
+}
+
 server {
   enabled          = true
   bootstrap_expect = "${nomad_bootstrap_expect}"
