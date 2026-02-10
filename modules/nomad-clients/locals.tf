@@ -9,6 +9,11 @@ locals {
     nomad_client_exec_host_volumes = var.nomad_client_exec_host_volumes
     ssh_user                       = var.ssh_user
     ssh_public_keys                = var.ssh_public_keys
+    nomad_gc_interval              = var.nomad_gc_interval
+    nomad_gc_disk_usage_threshold  = var.nomad_gc_disk_usage_threshold
+    nomad_gc_inode_usage_threshold = var.nomad_gc_inode_usage_threshold
+    nomad_gc_max_allocs            = var.nomad_gc_max_allocs
+    nomad_gc_parallel_destroys     = var.nomad_gc_parallel_destroys
     nomad_client_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc         = var.cluster_name
       nomad_acl_enable = var.nomad_acl_enable

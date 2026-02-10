@@ -187,6 +187,11 @@ client {
   server_join {
     retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }
+  gc_interval              = ${nomad_gc_interval}
+  gc_disk_usage_threshold  = ${nomad_gc_disk_usage_threshold}
+  gc_inode_usage_threshold = ${nomad_gc_inode_usage_threshold}
+  gc_max_allocs            = ${nomad_gc_max_allocs}
+  gc_parallel_destroys     = ${nomad_gc_parallel_destroys}
   meta {
 $(for tag in "$${AWS_TAGS[@]}"; do
     key=$${tag//:/_}

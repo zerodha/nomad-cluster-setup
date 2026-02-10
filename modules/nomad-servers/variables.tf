@@ -248,3 +248,9 @@ variable "http_max_conns_per_client" {
   type        = number
   default     = 100
 }
+
+variable "nomad_job_gc_threshold" {
+  description = "Minimum time a job must be in terminal state before it is eligible for garbage collection"
+  type        = string
+  default     = "4h"
+}
