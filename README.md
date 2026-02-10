@@ -21,6 +21,7 @@ Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) 
     - [Nomad Servers](#nomad-servers)
     - [Nomad Clients](#nomad-clients)
     - [Other Examples](#other-examples)
+  - [Changelog](#changelog)
   - [Contributors](#contributors)
   - [Contributing](#contributing)
   - [LICENSE](#license)
@@ -101,7 +102,7 @@ Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation f
 
 ```hcl
 module "nomad_servers" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-servers?ref=main"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-servers?ref=v1.5.0"
 
   cluster_name         = "demo-nomad"
   nomad_join_tag_value = "demo"
@@ -121,7 +122,7 @@ module "nomad_servers" {
 
 ```hcl
 module "nomad_client_demo" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-clients?ref=main"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-clients?ref=v1.5.0"
 
   cluster_name              = "demo-nomad"
   nomad_join_tag_value      = "demo"
@@ -141,6 +142,10 @@ module "nomad_client_demo" {
 ### Other Examples
 
 * [Complete Cluster Setup](./examples)
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for a detailed list of changes across versions.
 
 ## Contributors
 
