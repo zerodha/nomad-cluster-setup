@@ -67,6 +67,11 @@ No modules.
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
 | <a name="input_nomad_client_exec_host_volumes"></a> [nomad\_client\_exec\_host\_volumes](#input\_nomad\_client\_exec\_host\_volumes) | A map of host volumes to configure for the Nomad client | <pre>map(object({<br>    path      = string<br>    read_only = bool<br>  }))</pre> | `{}` | no |
 | <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
+| <a name="input_nomad_gc_disk_usage_threshold"></a> [nomad\_gc\_disk\_usage\_threshold](#input\_nomad\_gc\_disk\_usage\_threshold) | Disk usage percent threshold at which the GC will mark allocations as eligible for collection | `number` | `80` | no |
+| <a name="input_nomad_gc_inode_usage_threshold"></a> [nomad\_gc\_inode\_usage\_threshold](#input\_nomad\_gc\_inode\_usage\_threshold) | Inode usage percent threshold at which the GC will mark allocations as eligible for collection | `number` | `70` | no |
+| <a name="input_nomad_gc_interval"></a> [nomad\_gc\_interval](#input\_nomad\_gc\_interval) | Interval between garbage collections for Nomad client allocations | `string` | `"1m"` | no |
+| <a name="input_nomad_gc_max_allocs"></a> [nomad\_gc\_max\_allocs](#input\_nomad\_gc\_max\_allocs) | Maximum number of terminal allocations that the GC will keep before forcing collection | `number` | `50` | no |
+| <a name="input_nomad_gc_parallel_destroys"></a> [nomad\_gc\_parallel\_destroys](#input\_nomad\_gc\_parallel\_destroys) | Number of parallel allocation destroys during garbage collection | `number` | `2` | no |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | The value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_override_instance_types"></a> [override\_instance\_types](#input\_override\_instance\_types) | List of instance types to define in the mixed\_instances\_policy block | `list(string)` | `[]` | no |
 | <a name="input_route_53_resolver_address"></a> [route\_53\_resolver\_address](#input\_route\_53\_resolver\_address) | Route53 resolver address for querying DNS inside exec tasks | `string` | n/a | yes |
