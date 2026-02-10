@@ -5,6 +5,10 @@ locals {
     nomad_file_limit          = var.nomad_file_limit
     nomad_dc                  = var.cluster_name
     nomad_raft_backup_bucket  = var.nomad_raft_backup_bucket
+    enable_tls                = var.enable_tls
+    tls_certificates          = var.tls_certificates
+    tls_http_enable           = var.tls_http_enable
+    tls_rpc_enable            = var.tls_rpc_enable
 
     nomad_server_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc                          = var.cluster_name
