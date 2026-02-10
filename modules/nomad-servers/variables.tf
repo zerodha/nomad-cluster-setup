@@ -242,3 +242,9 @@ variable "http_tokens" {
   type        = string
   default     = "optional"
 }
+
+variable "http_max_conns_per_client" {
+  description = "Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors."
+  type        = number
+  default     = 100
+}
