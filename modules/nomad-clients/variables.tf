@@ -289,6 +289,12 @@ variable "extra_script" {
   default     = ""
 }
 
+variable "extra_script_content" {
+  description = "Inline cloud-init shell script content. Takes precedence over extra_script if set."
+  type        = string
+  default     = ""
+}
+
 variable "http_put_response_hop_limit" {
   description = "The hop limit for HTTP PUT response for the EC2 instance metadata service"
   type        = number
