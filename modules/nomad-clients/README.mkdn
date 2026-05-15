@@ -54,6 +54,7 @@ No modules.
 | <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
 | <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
+| <a name="input_extra_script_content"></a> [extra\_script\_content](#input\_extra\_script\_content) | Inline cloud-init shell script content. Takes precedence over extra\_script if set. | `string` | `""` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks. | `number` | `180` | no |
 | <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
