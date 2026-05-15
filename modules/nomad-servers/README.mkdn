@@ -56,6 +56,7 @@
 | <a name="input_enable_mem_oversubscription"></a> [enable\_mem\_oversubscription](#input\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
 | <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
+| <a name="input_extra_script_content"></a> [extra\_script\_content](#input\_extra\_script\_content) | Inline cloud-init shell script content. Takes precedence over extra\_script if set. | `string` | `""` | no |
 | <a name="input_http_max_conns_per_client"></a> [http\_max\_conns\_per\_client](#input\_http\_max\_conns\_per\_client) | Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors. | `number` | `100` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
 | <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
