@@ -14,6 +14,10 @@ locals {
     nomad_gc_inode_usage_threshold = var.nomad_gc_inode_usage_threshold
     nomad_gc_max_allocs            = var.nomad_gc_max_allocs
     nomad_gc_parallel_destroys     = var.nomad_gc_parallel_destroys
+    enable_tls                     = var.enable_tls
+    tls_certificates               = var.tls_certificates
+    tls_http_enable                = var.tls_http_enable
+    tls_rpc_enable                 = var.tls_rpc_enable
     nomad_client_cfg = templatefile("${path.module}/templates/nomad.tftpl", {
       nomad_dc         = var.cluster_name
       nomad_acl_enable = var.nomad_acl_enable

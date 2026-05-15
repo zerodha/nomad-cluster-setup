@@ -17,6 +17,8 @@ data "cloudinit_config" "config" {
     filename = "extra_script.sh"
     content_type = "text/x-shellscript"
     merge_type   = "str(append)"
-    content = var.extra_script != "" ? file(var.extra_script) : "#!/bin/bash"
+    content = var.extra_script_content != "" ? var.extra_script_content : (
+      var.extra_script != "" ? file(var.extra_script) : "#!/bin/bash"
+    )
   }
 }
