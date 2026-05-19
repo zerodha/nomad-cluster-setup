@@ -92,6 +92,7 @@ modify_nomad_systemd_config() {
 start_nomad() {
   sudo systemctl daemon-reload
   sudo systemctl enable --now nomad
+  sudo systemctl restart nomad
 }
 
 # Restarts nomad systemd service
