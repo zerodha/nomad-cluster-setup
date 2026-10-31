@@ -21,10 +21,8 @@ mock_provider "aws" {
     }
   }
 
-  # The upstream module references the target group by id, which AWS sets to the ARN.
   mock_resource "aws_lb_target_group" {
     defaults = {
-      id  = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
       arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
     }
   }
@@ -55,7 +53,7 @@ run "plans_with_defaults" {
   }
 
   assert {
-    condition     = length(module.alb) == 0
+    condition     = length(aws_lb.nomad) == 0
     error_message = "ALB must not be created by default."
   }
 }
@@ -69,8 +67,34 @@ run "plans_with_alb" {
   }
 
   assert {
-    condition     = length(module.alb) == 1
+    condition     = length(aws_lb.nomad) == 1
     error_message = "ALB must be created when create_alb is true."
+  }
+
+  assert {
+    condition     = length(aws_lb_listener.http) == 1 && length(aws_lb_listener.https) == 0
+    error_message = "Without a certificate the ALB must only listen on HTTP."
+  }
+}
+
+run "plans_with_alb_https" {
+  command = plan
+
+  variables {
+    create_alb                = true
+    alb_certificate_arn       = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+    nomad_alb_hostname        = "nomad.example.test"
+    nomad_server_incoming_ips = ["10.0.0.0/16"]
+  }
+
+  assert {
+    condition     = length(aws_lb_listener.https) == 1 && length(aws_lb_listener.http) == 0
+    error_message = "With a certificate the ALB must only listen on HTTPS."
+  }
+
+  assert {
+    condition     = flatten([for c in aws_lb_listener_rule.https_host[0].condition : c.host_header[0].values]) == ["nomad.example.test"]
+    error_message = "The HTTPS rule must forward only the Nomad hostname."
   }
 }
 
