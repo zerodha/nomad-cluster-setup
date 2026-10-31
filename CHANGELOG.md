@@ -20,6 +20,10 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - nomad-clients: host volume paths may only contain letters, digits, `_`, `.`, `-` and `/`.
 - Agents leave the cluster gracefully when stopped (`leave_on_interrupt` and `leave_on_terminate`).
 - Images need Nomad 1.7 or later and the AWS CLI v2.
+- nomad-clients: the `ec2` client mode is removed, with the `client_type` and `ec2_count` inputs and the `nomad_client_ec2` and `nomad_client_ec2_availability_zones` outputs. Migration: size the ASG with `instance_*_count`, and remove `aws_instance.nomad_client` from state first if the old instances must survive the apply.
+- nomad-clients: the unused `vpc` input is removed. Migration: delete it from the module call.
+- `cluster_name` no longer needs a `-nomad` suffix. It must be 1-28 lowercase letters, digits or hyphens that start and end with a letter or digit, and in nomad-clients `<cluster_name>-<client_name>` must fit in 64 characters. Migration: shorten or lowercase names that fail; renaming replaces the named resources.
+- The `packer/` template is removed. Migration: build an image that meets the [AMI](./README.md#ami) requirements.
 
 ### Features
 
