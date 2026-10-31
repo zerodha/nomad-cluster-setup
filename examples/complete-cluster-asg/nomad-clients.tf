@@ -3,21 +3,25 @@
 # running within the cluster
 
 module "nomad_client_demo" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//nomad-clients?ref=main"
+  source = "../../modules/nomad-clients"
 
   client_name               = "example-application"
   cluster_name              = "demo-nomad"
+  cluster_tags              = { env = "demo" }
   enable_docker_plugin      = true
   instance_desired_count    = 10
+  instance_max_count        = 10
   instance_type             = "c6a.xlarge"
   nomad_join_tag_value      = "demo"
+  node_pool                 = "default"
   route_53_resolver_address = "10.0.0.2"
+  secrets_ssm_prefix        = "/nomad/example"
 
-  client_security_groups = module.nomad_servers.nomad_server_sg
+  client_security_groups = [module.nomad_servers.nomad_agent_security_group_id]
 
-  ami     = "ami-abc"
-  subnets = "subnet-xyz"
-  vpc     = "vpc-xyz"
+  ami     = "ami-0123456789abcdef0"
+  subnets = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
+  vpc     = "vpc-0123456789abcdef0"
 
   # Set this to allow the ALB to connect to the "demo-nomad"
   # client nodes.
@@ -46,9 +50,9 @@ module "demo_client_alb" {
   load_balancer_type = "application"
   internal           = false
 
-  vpc_id          = "vpc-xyz"
-  subnets         = ["subnet-abc", "subnet-xyz"]
-  security_groups = [aws_security_group.demo_client_nomad.id, "sg-12345678"]
+  vpc_id          = "vpc-0123456789abcdef0"
+  subnets         = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
+  security_groups = [aws_security_group.demo_client_nomad.id]
 
   target_groups = [
     {
@@ -87,7 +91,7 @@ module "demo_client_alb" {
 resource "aws_security_group" "demo_client_nomad" {
   name        = "demo-client-nomad-alb"
   description = "ALB SG for demo-client-nomad"
-  vpc_id      = "vpc-xyz"
+  vpc_id      = "vpc-0123456789abcdef0"
 
   ingress = []
   egress = [
