@@ -7,7 +7,7 @@ mock_provider "aws" {
 
   mock_data "aws_region" {
     defaults = {
-      name = "eu-west-1"
+      region = "eu-west-1"
     }
   }
 
@@ -146,7 +146,7 @@ run "follows_pool_drain_and_region_inputs" {
   override_data {
     target = data.aws_region.current
     values = {
-      name = "us-east-1"
+      region = "us-east-1"
     }
   }
 

@@ -1,5 +1,5 @@
 locals {
-  aws_region       = data.aws_region.current.name
+  aws_region       = data.aws_region.current.region
   nomad_datacenter = coalesce(var.nomad_datacenter, var.cluster_name)
 
   setup_server = templatefile("${path.module}/scripts/setup_server.tftpl.sh", {

@@ -1,5 +1,5 @@
 locals {
-  aws_region       = data.aws_region.current.name
+  aws_region       = data.aws_region.current.region
   nomad_datacenter = coalesce(var.nomad_datacenter, var.cluster_name)
 
   # Instance tags known at plan time, exposed as node meta with the same
