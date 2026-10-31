@@ -1,5 +1,4 @@
 resource "aws_launch_template" "nomad_client" {
-  count                   = var.client_type == "asg" ? 1 : 0
   description             = "Launch template for nomad client ${var.client_name} in ${var.cluster_name} cluster"
   disable_api_termination = false
   image_id                = var.ami
@@ -61,4 +60,9 @@ resource "aws_launch_template" "nomad_client" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+moved {
+  from = aws_launch_template.nomad_client[0]
+  to   = aws_launch_template.nomad_client
 }

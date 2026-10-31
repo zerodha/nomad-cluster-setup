@@ -18,25 +18,16 @@ variable "client_security_groups" {
   default     = []
 }
 
-variable "client_type" {
-  description = "Type of client to deploy: 'ec2' or 'asg'"
-  type        = string
-  default     = "asg"
-  nullable    = false
-
-  validation {
-    condition     = contains(["ec2", "asg"], var.client_type)
-    error_message = "Client type can only be 'ec2' or 'asg'"
-  }
-}
-
 variable "cluster_name" {
-  description = "Identifier used for naming all resources associated with the cluster"
+  description = "Identifier used for naming all resources associated with the cluster. 1-28 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
   type        = string
   nullable    = false
+
+  # Same rule as nomad-servers, which names its ALB "<cluster_name>-web" and
+  # AWS caps ALB names at 32 characters.
   validation {
-    condition     = endswith(var.cluster_name, "-nomad")
-    error_message = "The cluster_name value must be suffixed with '-nomad'"
+    condition     = length(var.cluster_name) <= 28 && can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.cluster_name))
+    error_message = "The cluster_name value must be 1-28 lowercase letters, digits or hyphens, and must start and end with a letter or digit."
   }
 }
 
@@ -142,12 +133,6 @@ variable "subnets" {
   default     = []
 }
 
-variable "vpc" {
-  description = "AWS Virtual Private Cloud (VPC) to deploy all resources in"
-  type        = string
-  nullable    = false
-}
-
 # Autoscale Group Configuration
 
 variable "autoscale_metrics" {
@@ -168,12 +153,6 @@ variable "autoscale_metrics" {
 variable "cluster_tags" {
   description = "Key-value pairs of tags to assign to the EC2 instances spawned by the ASG"
   type        = map(string)
-}
-
-variable "ec2_count" {
-  description = "Number of Nomad client EC2 instances to run"
-  type        = number
-  default     = 1
 }
 
 variable "healthcheck_type" {

@@ -16,7 +16,6 @@ variables {
   nomad_join_tag_value      = "test"
   route_53_resolver_address = "10.0.0.2"
   secrets_ssm_prefix        = "/nomad/example"
-  vpc                       = "vpc-0123456789abcdef0"
   subnets                   = ["subnet-0123456789abcdef0"]
 }
 
@@ -24,46 +23,55 @@ run "plans_asg_with_defaults" {
   command = plan
 
   assert {
-    condition     = length(aws_launch_template.nomad_client[0].user_data) > 0
+    condition     = length(aws_launch_template.nomad_client.user_data) > 0
     error_message = "Launch template user_data must not be empty."
   }
 
   assert {
-    condition     = length(aws_instance.nomad_client) == 0
-    error_message = "No standalone EC2 instances must be planned in asg mode."
+    condition     = aws_autoscaling_group.nomad_client.name == "test-nomad-test"
+    error_message = "The ASG must be named <cluster_name>-<client_name>."
   }
 }
 
-run "plans_ec2_client" {
+run "accepts_cluster_name_without_suffix" {
   command = plan
 
   variables {
-    client_type = "ec2"
-    ec2_count   = 2
+    cluster_name = "demo"
   }
 
   assert {
-    condition     = length(aws_instance.nomad_client) == 2
-    error_message = "ec2 mode must plan ec2_count instances."
-  }
-
-  assert {
-    condition     = length(aws_instance.nomad_client[0].user_data_base64) > 0
-    error_message = "EC2 user_data must not be empty."
-  }
-
-  assert {
-    condition     = length(aws_launch_template.nomad_client) == 0
-    error_message = "No launch template must be planned in ec2 mode."
+    condition     = aws_autoscaling_group.nomad_client.name == "demo-test" && aws_iam_role.nomad_client[0].name == "demo-test"
+    error_message = "Resources must be named from cluster_name as given."
   }
 }
 
-run "rejects_cluster_name_without_suffix" {
+run "rejects_cluster_name_over_28_characters" {
   command = plan
 
   variables {
-    cluster_name = "test"
+    cluster_name = "abcdefghijklmnopqrstuvwxyz123"
   }
 
   expect_failures = [var.cluster_name]
+}
+
+run "rejects_cluster_name_with_leading_hyphen" {
+  command = plan
+
+  variables {
+    cluster_name = "-demo"
+  }
+
+  expect_failures = [var.cluster_name]
+}
+
+run "rejects_iam_role_name_over_64_characters" {
+  command = plan
+
+  variables {
+    client_name = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz12"
+  }
+
+  expect_failures = [aws_iam_role.nomad_client]
 }

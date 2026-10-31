@@ -46,7 +46,6 @@ variables {
   nomad_join_tag_value      = "test"
   route_53_resolver_address = "10.0.0.2"
   secrets_ssm_prefix        = "/nomad/example"
-  vpc                       = "vpc-0123456789abcdef0"
   subnets                   = ["subnet-0123456789abcdef0"]
 }
 
@@ -56,7 +55,7 @@ run "renders_boot_config_without_secrets" {
   assert {
     condition = alltrue([
       for s in ["ens5", "/lib/systemd", "sed -i", "169.254.169.254", "hostnamectl", "authorized_keys", "PRIVATE KEY", "/lib32", "/etc/timezone"] :
-      !strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), s)
+      !strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "User data must not depend on interface names, IMDS, SSH users, or edit files under /usr."
   }
@@ -78,28 +77,28 @@ run "renders_boot_config_without_secrets" {
         "After=docker.service",
         "LimitNOFILE=900000",
         "TimeoutStopSec=5m 30s",
-      ] : strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), s)
+      ] : strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "User data is missing expected client configuration."
   }
 
   assert {
-    condition     = !strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), "fetch_secret tls/")
+    condition     = !strcontains(base64decode(aws_launch_template.nomad_client.user_data), "fetch_secret tls/")
     error_message = "TLS material must only be read when tls_enabled is true."
   }
 
   assert {
-    condition     = one(aws_launch_template.nomad_client[0].block_device_mappings).device_name == "/dev/xvda"
+    condition     = one(aws_launch_template.nomad_client.block_device_mappings).device_name == "/dev/xvda"
     error_message = "The root volume must use the AMI's root device name."
   }
 
   assert {
-    condition     = one(aws_launch_template.nomad_client[0].metadata_options).http_tokens == "required"
+    condition     = one(aws_launch_template.nomad_client.metadata_options).http_tokens == "required"
     error_message = "IMDSv2 must be required by default."
   }
 
   assert {
-    condition     = one(aws_launch_template.nomad_client[0].metadata_options).http_put_response_hop_limit == 1
+    condition     = one(aws_launch_template.nomad_client.metadata_options).http_put_response_hop_limit == 1
     error_message = "The IMDS hop limit must default to 1."
   }
 
@@ -128,7 +127,7 @@ run "reads_tls_material_from_ssm" {
         "fetch_secret tls/cert /etc/nomad.d/tls/cert.pem",
         "fetch_secret tls/key /etc/nomad.d/tls/key.pem",
         "key_file  = \"/etc/nomad.d/tls/key.pem\"",
-      ] : strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), s)
+      ] : strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "TLS material must be read from SSM and referenced by absolute path."
   }
@@ -153,7 +152,7 @@ run "follows_pool_drain_and_region_inputs" {
   assert {
     condition = alltrue([
       for s in ["node_pool = \"batch\"", "deadline = \"1h30m\"", "TimeoutStopSec=1h30m 30s", "search ec2.internal"] :
-      strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), s)
+      strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "node_pool, drain_deadline and the DNS search domain must follow the inputs."
   }
@@ -161,7 +160,7 @@ run "follows_pool_drain_and_region_inputs" {
   assert {
     condition = alltrue([
       for s in ["plugin \"docker\"", "After=docker.service"] :
-      !strcontains(base64decode(aws_launch_template.nomad_client[0].user_data), s)
+      !strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "Docker settings must only be rendered when the Docker plugin is enabled."
   }

@@ -17,6 +17,13 @@ resource "aws_iam_role" "nomad_client" {
   name               = "${var.cluster_name}-${var.client_name}"
   tags               = var.iam_tags
   assume_role_policy = data.aws_iam_policy_document.instance-assume-role-policy.json
+
+  lifecycle {
+    precondition {
+      condition     = length("${var.cluster_name}-${var.client_name}") <= 64
+      error_message = "The IAM role name \"<cluster_name>-<client_name>\" must be at most 64 characters. Shorten cluster_name or client_name, or set iam_instance_profile."
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "nomad_client" {

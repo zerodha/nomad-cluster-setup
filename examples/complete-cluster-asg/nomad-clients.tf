@@ -21,7 +21,6 @@ module "nomad_client_demo" {
 
   ami     = "ami-0123456789abcdef0"
   subnets = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
-  vpc     = "vpc-0123456789abcdef0"
 
   # Set this to allow the ALB to connect to the "demo-nomad"
   # client nodes.
