@@ -34,7 +34,7 @@ telemetry {
 }
 
 limits {
-  http_max_conns_per_client = ${http_max_conns_per_client}
+  http_max_conns_per_client = ${nomad_http_max_conns_per_client}
 }
 
 server {
@@ -46,6 +46,6 @@ server {
     retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
   }
   default_scheduler_config {
-    memory_oversubscription_enabled = ${enable_mem_oversubscription}
+    memory_oversubscription_enabled = ${nomad_enable_mem_oversubscription}
   }
 }

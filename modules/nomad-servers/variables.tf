@@ -87,7 +87,7 @@ variable "ebs_encryption" {
   default     = true
 }
 
-variable "enable_mem_oversubscription" {
+variable "nomad_enable_mem_oversubscription" {
   description = "Whether to enable Memory Oversubscription on the cluster"
   type        = bool
   default     = false
@@ -249,7 +249,7 @@ variable "http_tokens" {
   default     = "optional"
 }
 
-variable "http_max_conns_per_client" {
+variable "nomad_http_max_conns_per_client" {
   description = "Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors."
   type        = number
   default     = 100
