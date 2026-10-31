@@ -53,11 +53,9 @@
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
 | <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of additional tags to apply to the EC2 instances | `map(string)` | `{}` | no |
-| <a name="input_enable_mem_oversubscription"></a> [enable\_mem\_oversubscription](#input\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
 | <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_extra_script_content"></a> [extra\_script\_content](#input\_extra\_script\_content) | Inline cloud-init shell script content. Takes precedence over extra\_script if set. | `string` | `""` | no |
-| <a name="input_http_max_conns_per_client"></a> [http\_max\_conns\_per\_client](#input\_http\_max\_conns\_per\_client) | Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors. | `number` | `100` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
 | <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
@@ -67,8 +65,10 @@
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
 | <a name="input_nomad_alb_hostname"></a> [nomad\_alb\_hostname](#input\_nomad\_alb\_hostname) | ALB hostname to use for accessing the Nomad web UI | `string` | `"nomad.example.internal"` | no |
 | <a name="input_nomad_bootstrap_expect"></a> [nomad\_bootstrap\_expect](#input\_nomad\_bootstrap\_expect) | Number of instances expected to bootstrap a new Nomad cluster | `number` | `3` | no |
+| <a name="input_nomad_enable_mem_oversubscription"></a> [nomad\_enable\_mem\_oversubscription](#input\_nomad\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
 | <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
 | <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |
+| <a name="input_nomad_http_max_conns_per_client"></a> [nomad\_http\_max\_conns\_per\_client](#input\_nomad\_http\_max\_conns\_per\_client) | Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors. | `number` | `100` | no |
 | <a name="input_nomad_job_gc_threshold"></a> [nomad\_job\_gc\_threshold](#input\_nomad\_job\_gc\_threshold) | Minimum time a job must be in terminal state before it is eligible for garbage collection | `string` | `"4h"` | no |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | Value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_nomad_raft_backup_bucket"></a> [nomad\_raft\_backup\_bucket](#input\_nomad\_raft\_backup\_bucket) | The S3 bucket to use for backing up Nomad RAFT snapshot | `string` | `""` | no |
