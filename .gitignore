@@ -35,3 +35,6 @@ terraform.rc
 
 .env
 .aider*
+
+# Reusable modules leave provider selection to the caller
+.terraform.lock.hcl
