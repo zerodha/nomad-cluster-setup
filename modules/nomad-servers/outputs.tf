@@ -2,7 +2,7 @@
 
 output "alb_dns_name" {
   description = "The DNS name of the ALB"
-  value       = var.create_alb ? module.alb[0].lb_dns_name : ""
+  value       = var.create_alb ? aws_lb.nomad[0].dns_name : ""
 }
 
 output "alb_security_group_id" {

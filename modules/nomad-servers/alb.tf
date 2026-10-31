@@ -1,90 +1,142 @@
-module "alb" {
+locals {
+  alb_https = var.create_alb && var.alb_certificate_arn != ""
+  alb_http  = var.create_alb && var.alb_certificate_arn == ""
+}
+
+resource "aws_lb" "nomad" {
   count = var.create_alb ? 1 : 0
 
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 6.0"
-
-  name = "${var.cluster_name}-web"
-
+  name               = "${var.cluster_name}-web"
   load_balancer_type = "application"
   internal           = true
-
-  vpc_id          = var.vpc
-  subnets         = var.subnets
-  security_groups = concat([aws_security_group.alb[0].id], var.nomad_server_incoming_security_groups)
-
-  target_groups = [
-    {
-      name_prefix      = "nomad-"
-      backend_protocol = "HTTP"
-      backend_port     = 4646
-      target_type      = "instance"
-      health_check = {
-        enabled             = true
-        interval            = 30
-        path                = "/ui/"
-        port                = "traffic-port"
-        healthy_threshold   = 5
-        unhealthy_threshold = 2
-        timeout             = 10
-        protocol            = "HTTP"
-        matcher             = "200"
-      }
-    }
-  ]
-
-  https_listeners = var.alb_certificate_arn == "" ? [] : [
-    {
-      port               = 443
-      protocol           = "HTTPS"
-      certificate_arn    = var.alb_certificate_arn
-      target_group_index = 0
-
-      action_type = "fixed-response"
-      fixed_response = {
-        content_type = "text/plain"
-        status_code  = "404"
-      }
-    }
-  ]
-
-  https_listener_rules = var.alb_certificate_arn == "" ? [] : [
-    {
-      https_listener_index = 0
-      actions = [{
-        type               = "forward"
-        target_group_index = 0
-      }]
-      conditions = [{
-        host_headers = ["${var.nomad_alb_hostname}"]
-      }]
-    }
-  ]
-
-  http_tcp_listeners = var.alb_certificate_arn != "" ? [] : [
-    {
-      port     = 80
-      protocol = "HTTP"
-    }
-  ]
-
-  http_tcp_listener_rules = var.alb_certificate_arn != "" ? [] : [
-    {
-      http_tcp_listener_index = 0
-      actions = [{
-        type               = "forward"
-        target_group_index = 0
-      }]
-
-      conditions = [{
-        host_headers = ["${var.nomad_alb_hostname}"]
-      }]
-    }
-  ]
+  subnets            = var.subnets
+  security_groups    = concat([aws_security_group.alb[0].id], var.nomad_server_incoming_security_groups)
 
   tags = {
     Name = "${var.cluster_name}-web"
   }
+}
+
+resource "aws_lb_target_group" "nomad" {
+  count = var.create_alb ? 1 : 0
+
+  name_prefix = "nomad-"
+  port        = 4646
+  protocol    = "HTTP"
+  target_type = "instance"
+  vpc_id      = var.vpc
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/ui/"
+    port                = "traffic-port"
+    healthy_threshold   = 5
+    unhealthy_threshold = 2
+    timeout             = 10
+    protocol            = "HTTP"
+    matcher             = "200"
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-web"
+  }
+
+  # AWS refuses to delete a target group that a listener still uses, so a
+  # replacement must exist first.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  count = local.alb_https ? 1 : 0
+
+  load_balancer_arn = aws_lb.nomad[0].arn
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = var.alb_certificate_arn
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+
+  # Only requests for the Nomad hostname reach the servers.
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      status_code  = "404"
+    }
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-web"
+  }
+}
+
+resource "aws_lb_listener_rule" "https_host" {
+  count = local.alb_https ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nomad[0].arn
+  }
+
+  condition {
+    host_header {
+      values = [var.nomad_alb_hostname]
+    }
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-web"
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  count = local.alb_http ? 1 : 0
+
+  load_balancer_arn = aws_lb.nomad[0].arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nomad[0].arn
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-web"
+  }
+}
+
+# Addresses created by terraform-aws-modules/alb/aws v6. The v6 HTTP host-header
+# rule is not carried over because the HTTP listener already forwards all
+# traffic to the same target group.
+moved {
+  from = module.alb[0].aws_lb.this[0]
+  to   = aws_lb.nomad[0]
+}
+
+moved {
+  from = module.alb[0].aws_lb_target_group.main[0]
+  to   = aws_lb_target_group.nomad[0]
+}
+
+moved {
+  from = module.alb[0].aws_lb_listener.frontend_https[0]
+  to   = aws_lb_listener.https[0]
+}
+
+moved {
+  from = module.alb[0].aws_lb_listener_rule.https_listener_rule[0]
+  to   = aws_lb_listener_rule.https_host[0]
+}
+
+moved {
+  from = module.alb[0].aws_lb_listener.frontend_http_tcp[0]
+  to   = aws_lb_listener.http[0]
 }
 
 resource "aws_security_group" "alb" {

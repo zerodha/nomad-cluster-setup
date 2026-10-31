@@ -15,7 +15,7 @@ resource "aws_autoscaling_group" "nomad_server" {
   enabled_metrics           = var.autoscale_metrics
   termination_policies      = ["OldestInstance"]
 
-  target_group_arns = var.create_alb ? module.alb[0].target_group_arns : []
+  target_group_arns = aws_lb_target_group.nomad[*].arn
 
   dynamic "tag" {
     for_each = var.cluster_tags
