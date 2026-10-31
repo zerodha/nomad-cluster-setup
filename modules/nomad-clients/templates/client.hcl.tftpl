@@ -1,0 +1,96 @@
+# The packaged systemd unit stops Nomad with SIGINT, so leave gracefully on
+# both signals.
+# drain_on_shutdown only runs on a graceful leave.
+leave_on_interrupt = true
+leave_on_terminate = true
+
+client {
+  enabled   = true
+  node_pool = "${node_pool}"
+
+  server_join {
+    retry_join = ["provider=aws region=${aws_region} tag_key=${join_tag_key} tag_value=${join_tag_value}"]
+  }
+
+  drain_on_shutdown {
+    deadline = "${drain_deadline}"
+  }
+
+  gc_interval              = "${gc_interval}"
+  gc_disk_usage_threshold  = ${gc_disk_usage_threshold}
+  gc_inode_usage_threshold = ${gc_inode_usage_threshold}
+  gc_max_allocs            = ${gc_max_allocs}
+  gc_parallel_destroys     = ${gc_parallel_destroys}
+
+  meta {
+%{ for key, value in meta ~}
+    ${jsonencode(key)} = ${jsonencode(value)}
+%{ endfor ~}
+  }
+
+  # Nomad skips entries that do not exist on the host, so this list covers
+  # Debian and RHEL layouts. /etc is listed entry by entry to keep the secrets
+  # in /etc/nomad.d out of exec task chroots.
+  chroot_env {
+    "/bin"                 = "/bin"
+    "/lib"                 = "/lib"
+    "/lib64"               = "/lib64"
+    "/sbin"                = "/sbin"
+    "/usr"                 = "/usr"
+    "/etc/alternatives"    = "/etc/alternatives"
+    "/etc/crypto-policies" = "/etc/crypto-policies"
+    "/etc/group"           = "/etc/group"
+    "/etc/ld.so.cache"     = "/etc/ld.so.cache"
+    "/etc/ld.so.conf"      = "/etc/ld.so.conf"
+    "/etc/ld.so.conf.d"    = "/etc/ld.so.conf.d"
+    "/etc/localtime"       = "/etc/localtime"
+    "/etc/passwd"          = "/etc/passwd"
+    "/etc/pki"             = "/etc/pki"
+    "/etc/ssl"             = "/etc/ssl"
+
+    "/etc/nomad.d/route53_resolv.conf" = "/etc/resolv.conf"
+  }
+%{ for name, volume in host_volumes ~}
+
+  host_volume ${jsonencode(name)} {
+    path      = ${jsonencode(volume.path)}
+    read_only = ${volume.read_only}
+  }
+%{ endfor ~}
+}
+
+plugin "exec" {
+  config {
+    allow_caps = ["audit_write", "chown", "dac_override", "fowner", "fsetid", "kill", "mknod",
+    "net_bind_service", "setfcap", "setgid", "setpcap", "setuid", "sys_chroot", "sys_time"]
+  }
+}
+
+plugin "raw_exec" {
+  config {
+    enabled = true
+  }
+}
+%{ if docker_enabled ~}
+
+plugin "docker" {
+  config {
+    auth {
+      config = "/etc/docker/config.json"
+    }
+    allow_privileged = true
+    volumes {
+      enabled = true
+    }
+    extra_labels = ["job_name", "job_id", "task_group_name", "task_name", "namespace", "node_name", "node_id"]
+
+    logging {
+      type = "json-file"
+      config {
+        max-size = "10m"
+        max-file = 10
+      }
+    }
+  }
+}
+%{ endif ~}

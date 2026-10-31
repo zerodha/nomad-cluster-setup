@@ -1,25 +1,27 @@
-datacenter = "${nomad_dc}"
+region     = "${nomad_region}"
+datacenter = "${nomad_datacenter}"
 data_dir   = "/opt/nomad/data"
-
-log_level = "INFO"
-
-bind_addr = "0.0.0.0"
+bind_addr  = "0.0.0.0"
+log_level  = "INFO"
 
 advertise {
-  http = "{{ GetInterfaceIP \"ens5\" }}"
-  rpc  = "{{ GetInterfaceIP \"ens5\" }}"
-  serf = "{{ GetInterfaceIP \"ens5\" }}"
+  http = "{{ GetPrivateIP }}"
+  rpc  = "{{ GetPrivateIP }}"
+  serf = "{{ GetPrivateIP }}"
 }
 
 acl {
-  enabled = ${nomad_acl_enable ? true : false}
+  enabled = ${acl_enabled}
 }
-
 
 consul {
   auto_advertise   = false
   server_auto_join = false
   client_auto_join = false
+}
+
+vault {
+  enabled = false
 }
 
 telemetry {
@@ -28,8 +30,4 @@ telemetry {
   prometheus_metrics         = true
   publish_allocation_metrics = true
   publish_node_metrics       = true
-}
-
-vault {
-  enabled = false
 }

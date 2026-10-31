@@ -1,357 +1,107 @@
 #!/usr/bin/env bash
 
-# Script to bootstrap Nomad as client node.
-
-# This script performs the following tasks:
-# - Prepares DNS configuration for exec tasks
-# - Renders the Nomad client configuration
-# - Optionally, adds Docker configuration to Nomad if the 'enable_docker_plugin' variable is set to true
-# - Adds SSH public keys to authorized_keys if provided
-# - Starts the Nomad service
+# Configures and starts a Nomad client.
+#
+# All configuration is written before Nomad starts. TLS material is read from
+# SSM Parameter Store at boot so it never appears in user data. The script is
+# safe to rerun: it rewrites every file and restarts Nomad.
 
 set -Eeuo pipefail
 
-declare -r SCRIPT_NAME="$(basename "$0")"
-declare -ag AWS_TAGS=()
-
-# Send the log output from this script to user-data.log, syslog, and the console.
-exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
-
-# Wrapper to log any outputs from the script to stderr
-function log {
-  declare -r LVL="$1"
-  declare -r MSG="$2"
-  declare -r TS=$(date +"%Y-%m-%d %H:%M:%S")
-  echo >&2 -e "$TS [$LVL] [$SCRIPT_NAME] $MSG"
+log() {
+  printf '%s [%s] setup_client: %s\n' "$(date -u +%FT%TZ)" "$1" "$2" >&2
 }
 
-# Stores AWS tags to use as nomad client meta
-# Requires `nomad-cluster` tag to be defined
-# within AWS instance tags
-store_tags() {
-  max_attempts=3
-  count=0
+trap 'log ERROR "failed at line $LINENO"' ERR
 
-  while true; do
-    TOKEN=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3 \
-      -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+# Atomically writes stdin to a file with the given mode.
+write_file() {
+  local path="$1" mode="$2" tmp
+  tmp=$(mktemp "$path.XXXXXX")
+  cat >"$tmp"
+  chmod "$mode" "$tmp"
+  mv -f "$tmp" "$path"
+}
 
-    TAGS=$(curl -s --connect-timeout 1 --retry 3 --retry-delay 3 \
-      -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
+%{ if tls_enabled ~}
+readonly AWS_REGION="${aws_region}"
+readonly SECRETS_SSM_PREFIX="${secrets_ssm_prefix}"
+readonly SECRET_TIMEOUT=300
 
-    # If there's no 'nomad-cluster' found in tags, retry.
-    if [[ "$${TAGS}" != *"nomad-cluster"* ]]; then
-      sleep 1
-
-      count=$((count + 1))
-
-      # If max retries still didn't get the data, fail.
-      if [[ $count -eq $max_attempts ]]; then
-        log "ERROR" "aborting as max attempts reached"
-        exit 1
-      fi
-      continue
+# Prints a SecureString parameter. All errors are retried until SECRET_TIMEOUT
+# because new instance roles and parameters can take a while to propagate.
+ssm_get() {
+  local name="$SECRETS_SSM_PREFIX/$1" deadline=$((SECONDS + SECRET_TIMEOUT))
+  until aws ssm get-parameter --region "$AWS_REGION" --name "$name" \
+    --with-decryption --query Parameter.Value --output text; do
+    if ((SECONDS >= deadline)); then
+      log ERROR "timed out reading $name"
+      return 1
     fi
-
-    readarray -t AWS_TAGS <<<"$TAGS"
-    break
-
+    log WARN "retrying read of $name"
+    sleep 5
   done
 }
 
-# Sets hostname for the system
-# Replaces `ip` in the hostname with the AWS instance `Name` tag
-set_hostname() {
-  for t in "$${AWS_TAGS[@]}"; do
-    # For servers we'll use the NAME tag of the EC2 instance.
-    if [ "$t" == "Name" ]; then
-      TAG=$(curl -s --retry 3 --retry-delay 3 --connect-timeout 3 \
-        -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$t")
-
-      # The original hostname is like `ip-10-x-y-z`
-      CURR_HOSTNAME=$(sudo hostnamectl --static)
-      # Replace `ip` with tag value.
-      HOSTNAME="$${CURR_HOSTNAME//ip/$TAG}"
-      log "INFO" "setting hostname as $HOSTNAME"
-      sudo hostnamectl set-hostname "$HOSTNAME"
-    fi
-  done
+# Copies a SecureString parameter into a root-only file.
+fetch_secret() {
+  local value
+  value=$(ssm_get "$1")
+  write_file "$2" 0600 <<<"$value"
 }
+%{ endif ~}
 
-# Ensures the resolv.conf within nomad `exec` jobs
-# can access other machines
-# see: https://github.com/hashicorp/nomad/issues/11033
-prepare_dns_config() {
-  cat <<EOF >/etc/nomad.d/route53_resolv.conf
+log INFO "writing Nomad configuration"
+install -d -m 0755 /etc/nomad.d /etc/systemd/system/nomad.service.d
+rm -f /etc/nomad.d/nomad.hcl
+
+write_file /etc/nomad.d/base.hcl 0644 <<'NOMAD_CONFIG'
+${chomp(base_hcl)}
+NOMAD_CONFIG
+
+write_file /etc/nomad.d/client.hcl 0644 <<'NOMAD_CONFIG'
+${chomp(client_hcl)}
+NOMAD_CONFIG
+
+# Exec tasks use this file as /etc/resolv.conf through chroot_env.
+# See https://github.com/hashicorp/nomad/issues/11033
+write_file /etc/nomad.d/route53_resolv.conf 0644 <<'NOMAD_CONFIG'
 nameserver ${route_53_resolver_address}
-search ${aws_region}.compute.internal
-EOF
-}
+search ${dns_search_domain}
+NOMAD_CONFIG
 
-# Increase the file limit
-modify_nomad_systemd_config() {
-  if [ ${nomad_file_limit} > 65536 ]; then
-    sudo sed -i --follow-symlinks '/^LimitNOFILE/s/=.*$/=${nomad_file_limit}/' /lib/systemd/system/nomad.service
-  fi
-}
+write_file /etc/systemd/system/nomad.service.d/nomad-cluster-setup.conf 0644 <<'NOMAD_CONFIG'
+%{ if docker_enabled ~}
+# Stop Nomad before Docker so the shutdown drain can still stop containers
+# gracefully.
+[Unit]
+After=docker.service
 
-# Function to check and load the bridge module
-load_bridge() {
-  if ! lsmod | grep -q "^bridge"; then
-    log "INFO" "Bridge module not loaded. Attempting to load..."
-    if ! modprobe bridge; then
-      log "ERROR" "Failed to load bridge module. This might affect network functionality."
-    else
-      log "INFO" "Bridge module loaded successfully."
-    fi
-  else
-    log "INFO" "Bridge module is already loaded."
-  fi
-}
+%{ endif ~}
+[Service]
+LimitNOFILE=${nomad_file_limit}
+# Leave room for drain_on_shutdown to finish before systemd kills Nomad.
+TimeoutStopSec=${drain_deadline} 30s
+NOMAD_CONFIG
+%{ for volume in host_volumes ~}
+install -d "${volume.path}"
+%{ endfor ~}
+%{ if tls_enabled ~}
 
-# Add SSH public keys to authorized_keys file
-add_ssh_keys() {
-  # Use the configured SSH user or default to "ubuntu"
-  SSH_USER="${ssh_user}"
+log INFO "reading TLS material from $SECRETS_SSM_PREFIX"
+install -d -m 0700 /etc/nomad.d/tls
+fetch_secret tls/ca_cert /etc/nomad.d/tls/ca.pem
+fetch_secret tls/cert /etc/nomad.d/tls/cert.pem
+fetch_secret tls/key /etc/nomad.d/tls/key.pem
 
-  # Check if the user exists
-  if ! id "$SSH_USER" &>/dev/null; then
-    log "ERROR" "User $SSH_USER does not exist. Cannot add SSH keys."
-    return 1
-  fi
+write_file /etc/nomad.d/tls.hcl 0644 <<'NOMAD_CONFIG'
+${chomp(tls_hcl)}
+NOMAD_CONFIG
+%{ endif ~}
 
-  # Get user's home directory from /etc/passwd
-  USER_HOME=$(getent passwd "$SSH_USER" | cut -d: -f6)
-  if [ -z "$USER_HOME" ]; then
-    log "ERROR" "Could not determine home directory for user $SSH_USER"
-    return 1
-  fi
+log INFO "starting Nomad"
+systemctl daemon-reload
+systemctl enable nomad
+systemctl restart nomad
 
-  SSH_DIR="$USER_HOME/.ssh"
-  AUTH_KEYS_FILE="$SSH_DIR/authorized_keys"
-
-  log "INFO" "Adding SSH keys for user $SSH_USER (home: $USER_HOME)"
-
-  # Ensure .ssh directory exists and has correct permissions
-  if [ ! -d "$SSH_DIR" ]; then
-    mkdir -p "$SSH_DIR"
-    log "INFO" "Created $SSH_DIR directory"
-  fi
-  chmod 700 "$SSH_DIR"
-  chown "$SSH_USER:$SSH_USER" "$SSH_DIR"
-
-  # Create authorized_keys file if it doesn't exist
-  if [ ! -f "$AUTH_KEYS_FILE" ]; then
-    touch "$AUTH_KEYS_FILE"
-    log "INFO" "Created $AUTH_KEYS_FILE file"
-  fi
-  chmod 600 "$AUTH_KEYS_FILE"
-  chown "$SSH_USER:$SSH_USER" "$AUTH_KEYS_FILE"
-
-  # Add each provided SSH public key
-  %{ for key in ssh_public_keys }
-  if ! grep -q "${key}" "$AUTH_KEYS_FILE"; then
-    echo "${key}" >> "$AUTH_KEYS_FILE"
-    log "INFO" "Added SSH public key to authorized_keys for $SSH_USER"
-  else
-    log "INFO" "SSH public key already exists in authorized_keys for $SSH_USER"
-  fi
-  %{ endfor }
-
-  # Ensure the authorized_keys file has the correct ownership and permissions
-  # This is crucial since the script runs as root
-  chmod 600 "$AUTH_KEYS_FILE"
-  chown "$SSH_USER:$SSH_USER" "$AUTH_KEYS_FILE"
-}
-
-# Enables nomad systemd service
-start_nomad() {
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now nomad
-  sudo systemctl restart nomad
-}
-
-# Restarts nomad systemd service
-restart_nomad() {
-  sudo systemctl restart nomad
-}
-
-# Sets up `/etc/nomad.d`
-prepare_nomad_client_config() {
-  cat <<EOF >/etc/nomad.d/nomad.hcl
-${nomad_client_cfg}
-EOF
-
-  cat <<EOF >>/etc/nomad.d/nomad.hcl
-client {
-  enabled = true
-  server_join {
-    retry_join = ["provider=aws region=${aws_region} tag_key=${nomad_join_tag_key} tag_value=${nomad_join_tag_value}"]
-  }
-  gc_interval              = "${nomad_gc_interval}"
-  gc_disk_usage_threshold  = ${nomad_gc_disk_usage_threshold}
-  gc_inode_usage_threshold = ${nomad_gc_inode_usage_threshold}
-  gc_max_allocs            = ${nomad_gc_max_allocs}
-  gc_parallel_destroys     = ${nomad_gc_parallel_destroys}
-  meta {
-$(for tag in "$${AWS_TAGS[@]}"; do
-    key=$${tag//:/_}
-    TAG=$(curl -s --connect-timeout 3 --retry 3 --retry-delay 3 \
-      -H "Accept: application/json" -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/tags/instance/$tag")
-    echo -e "\tec2_$key = \"$TAG\""
-  done)
-  }
-  chroot_env {
-    # Defaults
-    "/bin/"           = "/bin/"
-    "/lib"            = "/lib"
-    "/lib32"          = "/lib32"
-    "/lib64"          = "/lib64"
-    "/sbin"           = "/sbin"
-    "/usr"            = "/usr"
-
-    "/etc/ld.so.cache"  = "/etc/ld.so.cache"
-    "/etc/ld.so.conf"   = "/etc/ld.so.conf"
-    "/etc/ld.so.conf.d" = "/etc/ld.so.conf.d"
-    "/etc/localtime"    = "/etc/localtime"
-    "/etc/passwd"       = "/etc/passwd"
-    "/etc/ssl"          = "/etc/ssl"
-    "/etc/timezone"     = "/etc/timezone"
-
-    # DNS
-    "/etc/nomad.d/route53_resolv.conf" = "/etc/resolv.conf"
-
-  }
-}
-
-plugin "exec" {
-  config {
-    allow_caps = ["audit_write", "chown", "dac_override", "fowner", "fsetid", "kill", "mknod",
-    "net_bind_service", "setfcap", "setgid", "setpcap", "setuid", "sys_chroot", "sys_time"]
-  }
-}
-
-plugin "raw_exec" {
-  config {
-    enabled = true
-  }
-}
-EOF
-}
-
-add_docker_to_nomad() {
-  cat <<EOF >>/etc/nomad.d/nomad.hcl
-plugin "docker" {
-  config {
-    auth {
-      config = "/etc/docker/config.json"
-    }
-    allow_privileged = true
-    volumes {
-      enabled = true
-    }
-    extra_labels = ["job_name", "job_id", "task_group_name", "task_name", "namespace", "node_name", "node_id"]
-
-    logging {
-      type = "json-file"
-      config {
-        max-size = "10m"
-        max-file = 10
-      }
-    }
-  }
-}
-EOF
-}
-
-add_host_volumes_to_nomad() {
-  cat <<EOF >>/etc/nomad.d/nomad.hcl
-client {
-  %{ for name, volume in nomad_client_exec_host_volumes }
-  host_volume "${name}" {
-    path      = "${volume.path}"
-    read_only = ${volume.read_only}
-  }
-  %{ endfor }
-}
-EOF
-
-  # Create directories if they don't exist
-  %{ for name, volume in nomad_client_exec_host_volumes }
-  if [ ! -d "${volume.path}" ]; then
-    mkdir -p "${volume.path}"
-  fi
-  %{ endfor }
-}
-
-add_tls_to_nomad() {
-  cat <<EOF >/etc/nomad.d/nomad-agent-ca.pem
-  ${base64decode(tls_certificates.ca_file)}
-EOF
-  cat <<EOF >/etc/nomad.d/global-client-nomad.pem
-  ${base64decode(tls_certificates.cert_file)}
-EOF
-  cat <<EOF >/etc/nomad.d/global-client-nomad-key.pem
-  ${base64decode(tls_certificates.key_file)}
-EOF
-  cat <<EOF >>/etc/nomad.d/tls.hcl
-tls {
-  http = ${tls_http_enable}
-  rpc  = ${tls_rpc_enable}
-
-  ca_file   = "nomad-agent-ca.pem"
-  cert_file = "global-client-nomad.pem"
-  key_file  = "global-client-nomad-key.pem"
-
-  verify_server_hostname = true
-  verify_https_client    = ${tls_http_enable}
-}
-EOF
-}
-
-log "INFO" "Fetching EC2 Tags from AWS"
-store_tags
-
-log "INFO" "Setting machine hostname"
-set_hostname
-
-log "INFO" "Prepare DNS config for exec tasks"
-prepare_dns_config
-
-log "INFO" "Checking and loading bridge module"
-load_bridge
-
-log "INFO" "Rendering client config for nomad"
-prepare_nomad_client_config
-
-%{ if enable_docker_plugin }
-log "INFO" "Adding docker config to Nomad"
-add_docker_to_nomad
-%{ endif }
-
-%{ if length(nomad_client_exec_host_volumes) > 0 }
-log "INFO" "Adding host volumes config to Nomad"
-add_host_volumes_to_nomad
-%{ else }
-log "INFO" "No host volumes configured for Nomad client"
-%{ endif }
-
-%{ if length(ssh_public_keys) > 0 }
-log "INFO" "Adding SSH public keys to authorized_keys"
-add_ssh_keys || log "WARN" "Failed to add SSH keys"
-%{ else }
-log "INFO" "No SSH public keys provided to add"
-%{ endif }
-
-log "INFO" "Modify Nomad systemd config"
-modify_nomad_systemd_config
-
-%{ if enable_tls }
-log "INFO" "Enabling TLS for Nomad Client"
-add_tls_to_nomad
-%{ endif }
-
-log "INFO" "Starting Nomad service"
-start_nomad
-
-log "INFO" "Finished client initializing process! Enjoy Nomad!"
+log INFO "done"

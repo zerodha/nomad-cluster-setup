@@ -6,13 +6,6 @@ variable "ami" {
   nullable    = false
 }
 
-variable "aws_region" {
-  description = "AWS region to deploy the cluster in"
-  type        = string
-  default     = "ap-south-1"
-  nullable    = false
-}
-
 variable "client_name" {
   description = "Name of the Auto Scaling Group (ASG) nodes deployed as Nomad clients"
   type        = string
@@ -47,8 +40,8 @@ variable "cluster_name" {
   }
 }
 
-variable "default_iam_policies" {
-  description = "List of IAM policies to assign to the Nomad clients"
+variable "iam_policy_arns" {
+  description = "Extra IAM policy ARNs to attach to the Nomad client role. Ignored when `iam_instance_profile` is set."
   type        = list(string)
   default     = []
 }
@@ -95,40 +88,26 @@ variable "enable_docker_plugin" {
   default     = true
 }
 
-variable "enable_tls" {
-  description = "Whether to enable TLS on client nodes"
+variable "tls_enabled" {
+  description = "Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `client.<nomad_region>.nomad`."
   type        = bool
   default     = false
 }
 
-variable "tls_certificates" {
-  description = "Base64 encoded certificate files to use for Nomad Client TLS"
-  type = object({
-    ca_file   = string
-    cert_file = string
-    key_file  = string
-  })
-  default = {
-    ca_file   = ""
-    cert_file = ""
-    key_file  = ""
-  }
-}
-
 variable "tls_http_enable" {
-  description = "Enable TLS over HTTP for Nomad Client. Setting this option requires the end-user to set NOMAD_TLS* variables while accessing the CLI"
+  description = "Enable TLS and client certificate verification on the HTTP API when `tls_enabled` is true"
   type        = bool
   default     = false
 }
 
 variable "tls_rpc_enable" {
-  description = "Enable TLS over RPC for Nomad Clients. This is required for intra-client mTLS."
+  description = "Enable TLS on RPC traffic when `tls_enabled` is true"
   type        = bool
   default     = true
 }
 
 variable "iam_instance_profile" {
-  description = "Name of the existing IAM Instance Profile to use"
+  description = "Name of an existing IAM instance profile to use instead of creating one. Its role needs the SSM, KMS and EC2 permissions that the module would otherwise grant."
   type        = string
   default     = ""
 }
@@ -263,24 +242,17 @@ variable "nomad_file_limit" {
 }
 
 variable "nomad_client_exec_host_volumes" {
-  description = "A map of host volumes to configure for the Nomad client"
+  description = "A map of host volumes to configure for the Nomad client. Each path is created at boot, so on images with a read-only root it must be under a writable location such as /var or /opt/nomad."
   type = map(object({
     path      = string
     read_only = bool
   }))
   default = {}
-}
 
-variable "ssh_public_keys" {
-  description = "List of SSH public keys to add to authorized_keys"
-  type        = list(string)
-  default     = []
-}
-
-variable "ssh_user" {
-  description = "The system user to add SSH keys for"
-  type        = string
-  default     = "ubuntu"
+  validation {
+    condition     = alltrue([for volume in values(var.nomad_client_exec_host_volumes) : can(regex("^/[A-Za-z0-9_./-]*$", volume.path))])
+    error_message = "Host volume paths must be absolute and may only contain letters, digits, \"_\", \".\", \"-\" and \"/\"."
+  }
 }
 
 variable "extra_script" {
@@ -296,15 +268,15 @@ variable "extra_script_content" {
 }
 
 variable "http_put_response_hop_limit" {
-  description = "The hop limit for HTTP PUT response for the EC2 instance metadata service"
+  description = "The hop limit for HTTP PUT response for the EC2 instance metadata service. The default of 1 keeps the instance credentials away from containers on bridge networks."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "http_tokens" {
   description = "Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'."
   type        = string
-  default     = "optional"
+  default     = "required"
 }
 
 variable "nomad_gc_interval" {
@@ -335,4 +307,58 @@ variable "nomad_gc_parallel_destroys" {
   description = "Number of parallel allocation destroys during garbage collection"
   type        = number
   default     = 2
+}
+
+variable "nomad_region" {
+  description = "Nomad region name for the agents"
+  type        = string
+  default     = "global"
+  nullable    = false
+}
+
+variable "nomad_datacenter" {
+  description = "Nomad datacenter name for the agents. Defaults to `cluster_name`."
+  type        = string
+  default     = null
+}
+
+variable "node_pool" {
+  description = "Nomad node pool for the clients"
+  type        = string
+  default     = "default"
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_-]{1,128}$", var.node_pool)) && var.node_pool != "all"
+    error_message = "The node_pool value must be 1-128 letters, digits, \"_\" or \"-\", and must not be \"all\"."
+  }
+}
+
+variable "drain_deadline" {
+  description = "How long a client drains its allocations on shutdown before stopping them, as a duration such as `5m` or `1h30m`"
+  type        = string
+  default     = "5m"
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^([0-9]+(ms|s|m|h))+$", var.drain_deadline))
+    error_message = "The drain_deadline value must be a duration made of ms, s, m or h units, such as \"5m\" or \"1h30m\"."
+  }
+}
+
+variable "secrets_ssm_prefix" {
+  description = "SSM Parameter Store path that holds the cluster secrets as SecureString parameters, for example `/nomad/example`. With `tls_enabled`, clients read `tls/ca_cert`, `tls/cert` and `tls/key` under it at boot."
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^(/[A-Za-z0-9_.-]+)+$", var.secrets_ssm_prefix))
+    error_message = "The secrets_ssm_prefix value must start with \"/\", must not end with \"/\", and may only contain letters, digits, \"_\", \".\", \"-\" and \"/\"."
+  }
+}
+
+variable "kms_key_arn" {
+  description = "ARN of the customer managed KMS key that encrypts the secrets. Leave null when the parameters use the AWS managed `aws/ssm` key."
+  type        = string
+  default     = null
 }
