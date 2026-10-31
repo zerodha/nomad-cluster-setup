@@ -18,18 +18,6 @@ variable "client_security_groups" {
   default     = []
 }
 
-variable "client_type" {
-  description = "Type of client to deploy: 'ec2' or 'asg'"
-  type        = string
-  default     = "asg"
-  nullable    = false
-
-  validation {
-    condition     = contains(["ec2", "asg"], var.client_type)
-    error_message = "Client type can only be 'ec2' or 'asg'"
-  }
-}
-
 variable "cluster_name" {
   description = "Identifier used for naming all resources associated with the cluster"
   type        = string
@@ -168,12 +156,6 @@ variable "autoscale_metrics" {
 variable "cluster_tags" {
   description = "Key-value pairs of tags to assign to the EC2 instances spawned by the ASG"
   type        = map(string)
-}
-
-variable "ec2_count" {
-  description = "Number of Nomad client EC2 instances to run"
-  type        = number
-  default     = 1
 }
 
 variable "healthcheck_type" {

@@ -24,37 +24,13 @@ run "plans_asg_with_defaults" {
   command = plan
 
   assert {
-    condition     = length(aws_launch_template.nomad_client[0].user_data) > 0
+    condition     = length(aws_launch_template.nomad_client.user_data) > 0
     error_message = "Launch template user_data must not be empty."
   }
 
   assert {
-    condition     = length(aws_instance.nomad_client) == 0
-    error_message = "No standalone EC2 instances must be planned in asg mode."
-  }
-}
-
-run "plans_ec2_client" {
-  command = plan
-
-  variables {
-    client_type = "ec2"
-    ec2_count   = 2
-  }
-
-  assert {
-    condition     = length(aws_instance.nomad_client) == 2
-    error_message = "ec2 mode must plan ec2_count instances."
-  }
-
-  assert {
-    condition     = length(aws_instance.nomad_client[0].user_data_base64) > 0
-    error_message = "EC2 user_data must not be empty."
-  }
-
-  assert {
-    condition     = length(aws_launch_template.nomad_client) == 0
-    error_message = "No launch template must be planned in ec2 mode."
+    condition     = aws_autoscaling_group.nomad_client.name == "test-nomad-test"
+    error_message = "The ASG must be named <cluster_name>-<client_name>."
   }
 }
 

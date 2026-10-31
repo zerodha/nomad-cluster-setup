@@ -1,6 +1,4 @@
 resource "aws_autoscaling_group" "nomad_client" {
-  count = var.client_type == "asg" ? 1 : 0
-
   name                      = "${var.cluster_name}-${var.client_name}"
   max_size                  = var.instance_max_count
   min_size                  = var.instance_min_count
@@ -17,7 +15,7 @@ resource "aws_autoscaling_group" "nomad_client" {
   mixed_instances_policy {
     launch_template {
       launch_template_specification {
-        launch_template_id = aws_launch_template.nomad_client[0].id
+        launch_template_id = aws_launch_template.nomad_client.id
         version            = "$Latest"
       }
 
@@ -64,4 +62,9 @@ resource "aws_autoscaling_group" "nomad_client" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+moved {
+  from = aws_autoscaling_group.nomad_client[0]
+  to   = aws_autoscaling_group.nomad_client
 }

@@ -74,8 +74,6 @@ The key resources provisioned by this module are:
 
 The module deploys Nomad on top of an Auto Scaling Group (ASG). For optimal performance and fault tolerance, it is recommended to run the Nomad server ASG with 3 or 5 EC2 instances distributed across multiple Availability Zones. Each EC2 instance should utilize an AMI built using the provided Packer script.
 
-**NOTE:** The Nomad Client terraform module allows setting up EC2 instances instead of ASGs. Check out the [`nomad_clients` Terraform Module Reference](./modules/nomad-clients/README.mkdn) for more information.
-
 ### Security Group
 
 Each EC2 instance within the ASG is assigned a Security Group that permits:
@@ -169,7 +167,7 @@ module "nomad_client_demo" {
 }
 ```
 
-**NOTE:** This module does not set up an ALB for accessing applications running on Nomad Clients. This is left up to the user to configure. Check out [`terraform-aws-alb`](https://github.com/terraform-aws-modules/terraform-aws-alb) or [Other Examples](#other-examples) for more information. You may also need to set [`target_group_arns`](./modules/nomad-clients#input_target_group_arns) if Auto-Scaling Groups are used.
+**NOTE:** This module does not set up an ALB for accessing applications running on Nomad Clients. This is left up to the user to configure. Check out [`terraform-aws-alb`](https://github.com/terraform-aws-modules/terraform-aws-alb) or [Other Examples](#other-examples) for more information. Set [`target_group_arns`](./modules/nomad-clients/README.mkdn#input_target_group_arns) to register the client ASG with a target group.
 
 ### Other Examples
 
