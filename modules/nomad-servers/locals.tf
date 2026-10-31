@@ -1,5 +1,5 @@
 locals {
-    setup_server = templatefile("${path.module}/scripts/setup_server.tftpl.sh", {
+  setup_server = templatefile("${path.module}/scripts/setup_server.tftpl.sh", {
     nomad_acl_bootstrap_token = var.nomad_acl_bootstrap_token
     nomad_acl_enable          = var.nomad_acl_enable
     nomad_file_limit          = var.nomad_file_limit
@@ -22,6 +22,5 @@ locals {
       nomad_http_max_conns_per_client   = var.nomad_http_max_conns_per_client
       nomad_job_gc_threshold            = var.nomad_job_gc_threshold
     })
-    nomad_file_limit = var.nomad_file_limit
   })
 }

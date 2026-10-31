@@ -4,17 +4,17 @@ data "aws_ec2_instance_type" "type" {
 }
 
 data "cloudinit_config" "config" {
-  gzip = false
+  gzip          = false
   base64_encode = false
 
   part {
-    filename = "setup_client.sh"
+    filename     = "setup_client.sh"
     content_type = "text/x-shellscript"
-    content = local.setup_client
+    content      = local.setup_client
   }
 
   part {
-    filename = "extra_script.sh"
+    filename     = "extra_script.sh"
     content_type = "text/x-shellscript"
     merge_type   = "str(append)"
     content = var.extra_script_content != "" ? var.extra_script_content : (
