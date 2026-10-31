@@ -2,7 +2,7 @@
 
 # Nomad Cluster Setup
 
-Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) cluster on AWS using an Auto Scaling Group (ASG). The modules are designed to provision Nomad servers and clients in ASG, making it easy to manage the infrastructure for Nomad cluster. Additionally, the repository includes Packer scripts to build a custom Amazon Machine Image (AMI) with Nomad pre-installed.
+Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) cluster on AWS using an Auto Scaling Group (ASG). The modules are designed to provision Nomad servers and clients in ASG, making it easy to manage the infrastructure for Nomad cluster. The modules do not build images. Bring an Amazon Machine Image (AMI) that meets the [AMI](#ami) requirements.
 
 ![Nomad architecture](./docs/architecture.png)
 
@@ -29,20 +29,14 @@ Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) 
 
 ## AMI
 
-The repository includes a [Packer file](./packer/ami.pkr.hcl), to build a custom Amazon Machine Image (AMI) with Nomad and `docker` pre-installed. This AMI is used by the Terraform modules when creating the ASG instances.
+The modules boot instances from the AMI you pass as `ami` and configure Nomad with cloud-init user data. The image must have:
 
-To build the AMI, run:
+- systemd, cloud-init and bash.
+- Nomad 1.7 or later with its systemd unit installed but not enabled, for example from the HashiCorp RPM or deb package. The generated configuration is validated against Nomad 2.1.1.
+- The AWS CLI v2. Servers use it to read secrets from SSM and to upload raft snapshots when `nomad_raft_backup_bucket` is set. Clients use it only when `tls_enabled` is true.
+- Docker on clients with `enable_docker_plugin = true`, the default.
 
-```bash
-cd packer
-make build
-```
-
-NOTE: `dry_run` mode is toggled as true by default. To build the AMI, set the `dry_run` variable in [`Makefile`](./packer/Makefile) to `false`.
-
-Any image works if it has systemd, cloud-init, the AWS CLI v2, and Nomad 1.7 or later installed with its systemd unit but not enabled, for example from the HashiCorp RPM or deb package. The generated configuration is validated against Nomad 2.1.1. The setup scripts only write under `/etc` and to the host volume paths you configure, so immutable images with a read-only `/usr`, such as bootc images, are supported. Nomad keeps its state in `/opt/nomad/data`, so `/opt/nomad` must be writable.
-
-NOTE: The Packer template still installs Nomad 1.6.1 by default and does not install the AWS CLI. Override `nomad_version` and add the AWS CLI before using it with these modules.
+The setup scripts only write under `/etc` and to the host volume paths you configure, so immutable images with a read-only `/usr`, such as bootc images, are supported. Nomad keeps its state in `/opt/nomad/data`, so `/opt/nomad` must be writable.
 
 ## Secrets
 
@@ -72,7 +66,7 @@ The key resources provisioned by this module are:
 
 ### Auto Scaling Group (ASG)
 
-The module deploys Nomad on top of an Auto Scaling Group (ASG). For optimal performance and fault tolerance, it is recommended to run the Nomad server ASG with 3 or 5 EC2 instances distributed across multiple Availability Zones. Each EC2 instance should utilize an AMI built using the provided Packer script.
+The module deploys Nomad on top of an Auto Scaling Group (ASG). For optimal performance and fault tolerance, it is recommended to run the Nomad server ASG with 3 or 5 EC2 instances distributed across multiple Availability Zones. Each EC2 instance boots from the AMI passed as `ami`, which must meet the [AMI](#ami) requirements.
 
 ### Security Group
 
