@@ -56,7 +56,7 @@ module "alb" {
         target_group_index = 0
       }]
       conditions = [{
-        host_headers = ["${var.nomad_alb_hostname}"]
+        host_headers = [var.nomad_alb_hostname]
       }]
     }
   ]
@@ -77,7 +77,7 @@ module "alb" {
       }]
 
       conditions = [{
-        host_headers = ["${var.nomad_alb_hostname}"]
+        host_headers = [var.nomad_alb_hostname]
       }]
     }
   ]
