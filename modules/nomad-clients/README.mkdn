@@ -24,11 +24,16 @@ No modules.
 | [aws_autoscaling_group.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
 | [aws_iam_instance_profile.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_role.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.default_iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_instance.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_launch_template.nomad_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [aws_ami.nomad](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ec2_instance_type.type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [cloudinit_config.config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
 
 ## Inputs
@@ -37,13 +42,12 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_ami"></a> [ami](#input\_ami) | Amazon Machine Image (AMI) ID used for deploying Nomad clients | `string` | n/a | yes |
 | <a name="input_autoscale_metrics"></a> [autoscale\_metrics](#input\_autoscale\_metrics) | List of autoscaling metrics to monitor for Auto Scaling Group (ASG) instances | `list(string)` | <pre>[<br>  "GroupMinSize",<br>  "GroupMaxSize",<br>  "GroupDesiredCapacity",<br>  "GroupInServiceInstances",<br>  "GroupPendingInstances",<br>  "GroupStandbyInstances",<br>  "GroupTerminatingInstances",<br>  "GroupTotalInstances"<br>]</pre> | no |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region to deploy the cluster in | `string` | `"ap-south-1"` | no |
 | <a name="input_client_name"></a> [client\_name](#input\_client\_name) | Name of the Auto Scaling Group (ASG) nodes deployed as Nomad clients | `string` | n/a | yes |
 | <a name="input_client_security_groups"></a> [client\_security\_groups](#input\_client\_security\_groups) | List of security groups to attach to the Nomad client nodes | `list(string)` | `[]` | no |
 | <a name="input_client_type"></a> [client\_type](#input\_client\_type) | Type of client to deploy: 'ec2' or 'asg' | `string` | `"asg"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier used for naming all resources associated with the cluster | `string` | n/a | yes |
 | <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Key-value pairs of tags to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
-| <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policies to assign to the Nomad clients | `list(string)` | `[]` | no |
+| <a name="input_drain_deadline"></a> [drain\_deadline](#input\_drain\_deadline) | How long a client drains its allocations on shutdown before stopping them, as a duration such as `5m` or `1h30m` | `string` | `"5m"` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_iops"></a> [ebs\_iops](#input\_ebs\_iops) | The amount of provisioned IOPS for the EBS volume (only valid for gp3, io1, io2) | `number` | `3000` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of custom tags to be assigned to the EBS volumes | `map(string)` | `{}` | no |
@@ -52,21 +56,24 @@ No modules.
 | <a name="input_ec2_count"></a> [ec2\_count](#input\_ec2\_count) | Number of Nomad client EC2 instances to run | `number` | `1` | no |
 | <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of custom tags to be assigned to the EC2 instances | `map(string)` | `{}` | no |
 | <a name="input_enable_docker_plugin"></a> [enable\_docker\_plugin](#input\_enable\_docker\_plugin) | Whether to enable the Docker plugin on the client nodes | `bool` | `true` | no |
-| <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_extra_script_content"></a> [extra\_script\_content](#input\_extra\_script\_content) | Inline cloud-init shell script content. Takes precedence over extra\_script if set. | `string` | `""` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The time (in seconds) to allow instances in the Auto Scaling group to warm up before beginning health checks. | `number` | `180` | no |
 | <a name="input_healthcheck_type"></a> [healthcheck\_type](#input\_healthcheck\_type) | Health check type for the ASG, either 'EC2' or 'ELB' | `string` | `"EC2"` | no |
-| <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
-| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
-| <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | Name of the existing IAM Instance Profile to use | `string` | `""` | no |
+| <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service. The default of 1 keeps the instance credentials away from containers on bridge networks. | `number` | `1` | no |
+| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"required"` | no |
+| <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | Name of an existing IAM instance profile to use instead of creating one. Its role needs the SSM, KMS and EC2 permissions that the module would otherwise grant. | `string` | `""` | no |
+| <a name="input_iam_policy_arns"></a> [iam\_policy\_arns](#input\_iam\_policy\_arns) | Extra IAM policy ARNs to attach to the Nomad client role. Ignored when `iam_instance_profile` is set. | `list(string)` | `[]` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
 | <a name="input_instance_desired_count"></a> [instance\_desired\_count](#input\_instance\_desired\_count) | Desired number of Nomad clients to run | `number` | `1` | no |
 | <a name="input_instance_max_count"></a> [instance\_max\_count](#input\_instance\_max\_count) | Maximum number of Nomad clients to run | `number` | `3` | no |
 | <a name="input_instance_min_count"></a> [instance\_min\_count](#input\_instance\_min\_count) | Minimum number of Nomad clients to run | `number` | `0` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad clients | `string` | `"c5a.large"` | no |
+| <a name="input_kms_key_arn"></a> [kms\_key\_arn](#input\_kms\_key\_arn) | ARN of the customer managed KMS key that encrypts the secrets. Leave null when the parameters use the AWS managed `aws/ssm` key. | `string` | `null` | no |
+| <a name="input_node_pool"></a> [node\_pool](#input\_node\_pool) | Nomad node pool for the clients | `string` | `"default"` | no |
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
-| <a name="input_nomad_client_exec_host_volumes"></a> [nomad\_client\_exec\_host\_volumes](#input\_nomad\_client\_exec\_host\_volumes) | A map of host volumes to configure for the Nomad client | <pre>map(object({<br>    path      = string<br>    read_only = bool<br>  }))</pre> | `{}` | no |
+| <a name="input_nomad_client_exec_host_volumes"></a> [nomad\_client\_exec\_host\_volumes](#input\_nomad\_client\_exec\_host\_volumes) | A map of host volumes to configure for the Nomad client. Each path is created at boot, so on images with a read-only root it must be under a writable location such as /var or /opt/nomad. | <pre>map(object({<br>    path      = string<br>    read_only = bool<br>  }))</pre> | `{}` | no |
+| <a name="input_nomad_datacenter"></a> [nomad\_datacenter](#input\_nomad\_datacenter) | Nomad datacenter name for the agents. Defaults to `cluster_name`. | `string` | `null` | no |
 | <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
 | <a name="input_nomad_gc_disk_usage_threshold"></a> [nomad\_gc\_disk\_usage\_threshold](#input\_nomad\_gc\_disk\_usage\_threshold) | Disk usage percent threshold at which the GC will mark allocations as eligible for collection | `number` | `80` | no |
 | <a name="input_nomad_gc_inode_usage_threshold"></a> [nomad\_gc\_inode\_usage\_threshold](#input\_nomad\_gc\_inode\_usage\_threshold) | Inode usage percent threshold at which the GC will mark allocations as eligible for collection | `number` | `70` | no |
@@ -74,15 +81,15 @@ No modules.
 | <a name="input_nomad_gc_max_allocs"></a> [nomad\_gc\_max\_allocs](#input\_nomad\_gc\_max\_allocs) | Maximum number of terminal allocations that the GC will keep before forcing collection | `number` | `50` | no |
 | <a name="input_nomad_gc_parallel_destroys"></a> [nomad\_gc\_parallel\_destroys](#input\_nomad\_gc\_parallel\_destroys) | Number of parallel allocation destroys during garbage collection | `number` | `2` | no |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | The value of the tag used for Nomad server auto-join | `string` | n/a | yes |
+| <a name="input_nomad_region"></a> [nomad\_region](#input\_nomad\_region) | Nomad region name for the agents | `string` | `"global"` | no |
 | <a name="input_override_instance_types"></a> [override\_instance\_types](#input\_override\_instance\_types) | List of instance types to define in the mixed\_instances\_policy block | `list(string)` | `[]` | no |
 | <a name="input_route_53_resolver_address"></a> [route\_53\_resolver\_address](#input\_route\_53\_resolver\_address) | Route53 resolver address for querying DNS inside exec tasks | `string` | n/a | yes |
-| <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | List of SSH public keys to add to authorized\_keys | `list(string)` | `[]` | no |
-| <a name="input_ssh_user"></a> [ssh\_user](#input\_ssh\_user) | The system user to add SSH keys for | `string` | `"ubuntu"` | no |
+| <a name="input_secrets_ssm_prefix"></a> [secrets\_ssm\_prefix](#input\_secrets\_ssm\_prefix) | SSM Parameter Store path that holds the cluster secrets as SecureString parameters, for example `/nomad/example`. With `tls_enabled`, clients read `tls/ca_cert`, `tls/cert` and `tls/key` under it at boot. | `string` | n/a | yes |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
 | <a name="input_target_group_arns"></a> [target\_group\_arns](#input\_target\_group\_arns) | List of target groups assigned in the ALB to connect to the ASG | `list(string)` | `[]` | no |
-| <a name="input_tls_certificates"></a> [tls\_certificates](#input\_tls\_certificates) | Base64 encoded certificate files to use for Nomad Client TLS | <pre>object({<br>    ca_file   = string<br>    cert_file = string<br>    key_file  = string<br>  })</pre> | <pre>{<br>  "ca_file": "",<br>  "cert_file": "",<br>  "key_file": ""<br>}</pre> | no |
-| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS over HTTP for Nomad Client. Setting this option requires the end-user to set NOMAD\_TLS* variables while accessing the CLI | `bool` | `false` | no |
-| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS over RPC for Nomad Clients. This is required for intra-client mTLS. | `bool` | `true` | no |
+| <a name="input_tls_enabled"></a> [tls\_enabled](#input\_tls\_enabled) | Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `client.<nomad_region>.nomad`. | `bool` | `false` | no |
+| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS and client certificate verification on the HTTP API when `tls_enabled` is true | `bool` | `false` | no |
+| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS on RPC traffic when `tls_enabled` is true | `bool` | `true` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | AWS Virtual Private Cloud (VPC) to deploy all resources in | `string` | n/a | yes |
 | <a name="input_wait_for_capacity_timeout"></a> [wait\_for\_capacity\_timeout](#input\_wait\_for\_capacity\_timeout) | Time for which Terraform waits after ASG creation to see if instances are running. | `string` | `"10m"` | no |
 

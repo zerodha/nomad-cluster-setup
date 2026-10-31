@@ -26,6 +26,7 @@
 | [aws_autoscaling_group.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
 | [aws_iam_instance_profile.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_role.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.default_iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_launch_template.nomad_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
@@ -33,8 +34,12 @@
 | [aws_vpc_security_group_egress_rule.er_alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.er_alb_ipv6](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_ingress_rule.ir_alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
+| [aws_ami.nomad](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ec2_instance_type.type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.instance-assume-role-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [cloudinit_config.config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
 
 ## Inputs
@@ -44,40 +49,39 @@
 | <a name="input_alb_certificate_arn"></a> [alb\_certificate\_arn](#input\_alb\_certificate\_arn) | ARN of the HTTPS certificate to use with the ALB | `string` | `""` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | AMI ID to use for deploying Nomad servers | `string` | n/a | yes |
 | <a name="input_autoscale_metrics"></a> [autoscale\_metrics](#input\_autoscale\_metrics) | List of autoscaling metrics to enable for the Autoscaling Group | `list(string)` | <pre>[<br>  "GroupMinSize",<br>  "GroupMaxSize",<br>  "GroupDesiredCapacity",<br>  "GroupInServiceInstances",<br>  "GroupPendingInstances",<br>  "GroupStandbyInstances",<br>  "GroupTerminatingInstances",<br>  "GroupTotalInstances"<br>]</pre> | no |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region to deploy the Nomad cluster in | `string` | `"ap-south-1"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier for the cluster, used as a prefix for all resources | `string` | n/a | yes |
 | <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Map of tag key-value pairs to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
 | <a name="input_create_alb"></a> [create\_alb](#input\_create\_alb) | Whether to create an ALB for the Nomad servers or not | `bool` | `false` | no |
-| <a name="input_default_iam_policies"></a> [default\_iam\_policies](#input\_default\_iam\_policies) | List of IAM policy ARNs to attach to the Nomad server instances | `list(string)` | `[]` | no |
 | <a name="input_default_security_groups"></a> [default\_security\_groups](#input\_default\_security\_groups) | List of security group IDs to assign to the Nomad server instances | `list(string)` | `[]` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | Enable EBS encryption | `bool` | `true` | no |
 | <a name="input_ebs_tags"></a> [ebs\_tags](#input\_ebs\_tags) | A map of additional tags to apply to the EBS volumes | `map(string)` | `{}` | no |
 | <a name="input_ec2_tags"></a> [ec2\_tags](#input\_ec2\_tags) | A map of additional tags to apply to the EC2 instances | `map(string)` | `{}` | no |
-| <a name="input_enable_mem_oversubscription"></a> [enable\_mem\_oversubscription](#input\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
-| <a name="input_enable_tls"></a> [enable\_tls](#input\_enable\_tls) | Whether to enable TLS on client nodes | `bool` | `false` | no |
 | <a name="input_extra_script"></a> [extra\_script](#input\_extra\_script) | Path to custom script to be run as part of cloud-init | `string` | `""` | no |
 | <a name="input_extra_script_content"></a> [extra\_script\_content](#input\_extra\_script\_content) | Inline cloud-init shell script content. Takes precedence over extra\_script if set. | `string` | `""` | no |
-| <a name="input_http_max_conns_per_client"></a> [http\_max\_conns\_per\_client](#input\_http\_max\_conns\_per\_client) | Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors. | `number` | `100` | no |
-| <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service | `number` | `2` | no |
-| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"optional"` | no |
+| <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The hop limit for HTTP PUT response for the EC2 instance metadata service. The default of 1 keeps the instance credentials away from containers on bridge networks. | `number` | `1` | no |
+| <a name="input_http_tokens"></a> [http\_tokens](#input\_http\_tokens) | Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'. | `string` | `"required"` | no |
+| <a name="input_iam_policy_arns"></a> [iam\_policy\_arns](#input\_iam\_policy\_arns) | Extra IAM policy ARNs to attach to the Nomad server role, for example S3 access for raft backups | `list(string)` | `[]` | no |
 | <a name="input_iam_tags"></a> [iam\_tags](#input\_iam\_tags) | A map of custom tags to be assigned to the IAM role | `map(string)` | `{}` | no |
-| <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of Nomad server instances to run | `number` | `3` | no |
+| <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of Nomad server instances to run. Also used as `bootstrap_expect`. | `number` | `3` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the Nomad server instances | `string` | `"c5a.large"` | no |
-| <a name="input_nomad_acl_bootstrap_token"></a> [nomad\_acl\_bootstrap\_token](#input\_nomad\_acl\_bootstrap\_token) | Nomad ACL bootstrap token to use for bootstrapping ACLs | `string` | `""` | no |
+| <a name="input_kms_key_arn"></a> [kms\_key\_arn](#input\_kms\_key\_arn) | ARN of the customer managed KMS key that encrypts the secrets. Leave null when the parameters use the AWS managed `aws/ssm` key. | `string` | `null` | no |
 | <a name="input_nomad_acl_enable"></a> [nomad\_acl\_enable](#input\_nomad\_acl\_enable) | Whether to enable ACLs on the Nomad cluster or not | `bool` | `true` | no |
 | <a name="input_nomad_alb_hostname"></a> [nomad\_alb\_hostname](#input\_nomad\_alb\_hostname) | ALB hostname to use for accessing the Nomad web UI | `string` | `"nomad.example.internal"` | no |
-| <a name="input_nomad_bootstrap_expect"></a> [nomad\_bootstrap\_expect](#input\_nomad\_bootstrap\_expect) | Number of instances expected to bootstrap a new Nomad cluster | `number` | `3` | no |
+| <a name="input_nomad_datacenter"></a> [nomad\_datacenter](#input\_nomad\_datacenter) | Nomad datacenter name for the agents. Defaults to `cluster_name`. | `string` | `null` | no |
+| <a name="input_nomad_enable_mem_oversubscription"></a> [nomad\_enable\_mem\_oversubscription](#input\_nomad\_enable\_mem\_oversubscription) | Whether to enable Memory Oversubscription on the cluster | `bool` | `false` | no |
 | <a name="input_nomad_file_limit"></a> [nomad\_file\_limit](#input\_nomad\_file\_limit) | Value for LimitNOFILE in nomad systemd config | `number` | `900000` | no |
-| <a name="input_nomad_gossip_encrypt_key"></a> [nomad\_gossip\_encrypt\_key](#input\_nomad\_gossip\_encrypt\_key) | Gossip encryption key to use for Nomad servers | `string` | n/a | yes |
+| <a name="input_nomad_http_max_conns_per_client"></a> [nomad\_http\_max\_conns\_per\_client](#input\_nomad\_http\_max\_conns\_per\_client) | Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors. | `number` | `100` | no |
 | <a name="input_nomad_job_gc_threshold"></a> [nomad\_job\_gc\_threshold](#input\_nomad\_job\_gc\_threshold) | Minimum time a job must be in terminal state before it is eligible for garbage collection | `string` | `"4h"` | no |
 | <a name="input_nomad_join_tag_value"></a> [nomad\_join\_tag\_value](#input\_nomad\_join\_tag\_value) | Value of the tag used for Nomad server auto-join | `string` | n/a | yes |
 | <a name="input_nomad_raft_backup_bucket"></a> [nomad\_raft\_backup\_bucket](#input\_nomad\_raft\_backup\_bucket) | The S3 bucket to use for backing up Nomad RAFT snapshot | `string` | `""` | no |
+| <a name="input_nomad_region"></a> [nomad\_region](#input\_nomad\_region) | Nomad region name for the agents | `string` | `"global"` | no |
 | <a name="input_nomad_server_incoming_ips"></a> [nomad\_server\_incoming\_ips](#input\_nomad\_server\_incoming\_ips) | List of IPs to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
 | <a name="input_nomad_server_incoming_security_groups"></a> [nomad\_server\_incoming\_security\_groups](#input\_nomad\_server\_incoming\_security\_groups) | List of Security Groups to allow incoming connections from to Nomad server ALBs | `list(string)` | `[]` | no |
+| <a name="input_secrets_ssm_prefix"></a> [secrets\_ssm\_prefix](#input\_secrets\_ssm\_prefix) | SSM Parameter Store path that holds the cluster secrets as SecureString parameters, for example `/nomad/example`. Servers read `gossip_key` and, with ACLs enabled, `acl_bootstrap_token` under it at boot. | `string` | n/a | yes |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnets to assign for deploying instances | `list(string)` | `[]` | no |
-| <a name="input_tls_certificates"></a> [tls\_certificates](#input\_tls\_certificates) | Base64 encoded certificate files to use for Nomad Server TLS | <pre>object({<br>    ca_file   = string<br>    cert_file = string<br>    key_file  = string<br>  })</pre> | <pre>{<br>  "ca_file": "",<br>  "cert_file": "",<br>  "key_file": ""<br>}</pre> | no |
-| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS over HTTP for Nomad Server. Setting this option requires the end-user to set NOMAD\_TLS* variables while accessing the CLI | `bool` | `false` | no |
-| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS over RPC for Nomad CLI. This is required for intra-client mTLS. | `bool` | `true` | no |
+| <a name="input_tls_enabled"></a> [tls\_enabled](#input\_tls\_enabled) | Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `server.<nomad_region>.nomad`. | `bool` | `false` | no |
+| <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS and client certificate verification on the HTTP API when `tls_enabled` is true. CLI users then need the NOMAD\_CACERT, NOMAD\_CLIENT\_CERT and NOMAD\_CLIENT\_KEY variables. | `bool` | `false` | no |
+| <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS on RPC and Raft traffic when `tls_enabled` is true | `bool` | `true` | no |
 | <a name="input_vpc"></a> [vpc](#input\_vpc) | ID of the AWS VPC to deploy all the resources in | `string` | n/a | yes |
 
 ## Outputs
