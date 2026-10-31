@@ -35,13 +35,13 @@ mock_provider "aws" {
 }
 
 variables {
-  ami                      = "ami-0123456789abcdef0"
-  cluster_name             = "test-nomad"
-  cluster_tags             = { env = "test" }
-  nomad_gossip_encrypt_key = "dGVzdC1nb3NzaXAta2V5LTMyLWJ5dGVzLWxvbmchIQ=="
-  nomad_join_tag_value     = "test"
-  vpc                      = "vpc-0123456789abcdef0"
-  subnets                  = ["subnet-0123456789abcdef0"]
+  ami                  = "ami-0123456789abcdef0"
+  cluster_name         = "test-nomad"
+  cluster_tags         = { env = "test" }
+  secrets_ssm_prefix   = "/nomad/example"
+  nomad_join_tag_value = "test"
+  vpc                  = "vpc-0123456789abcdef0"
+  subnets              = ["subnet-0123456789abcdef0"]
 }
 
 run "plans_with_defaults" {

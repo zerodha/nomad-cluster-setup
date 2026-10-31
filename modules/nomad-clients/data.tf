@@ -3,6 +3,19 @@ data "aws_ec2_instance_type" "type" {
   instance_type = var.instance_type
 }
 
+data "aws_ami" "nomad" {
+  filter {
+    name   = "image-id"
+    values = [var.ami]
+  }
+}
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_partition" "current" {}
+
 data "cloudinit_config" "config" {
   gzip          = false
   base64_encode = false

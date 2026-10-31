@@ -1,0 +1,22 @@
+# The packaged systemd unit stops Nomad with SIGINT, so leave gracefully on
+# both signals.
+leave_on_interrupt = true
+leave_on_terminate = true
+
+limits {
+  http_max_conns_per_client = ${http_max_conns_per_client}
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = ${bootstrap_expect}
+  job_gc_threshold = "${job_gc_threshold}"
+
+  server_join {
+    retry_join = ["provider=aws region=${aws_region} tag_key=${join_tag_key} tag_value=${join_tag_value}"]
+  }
+
+  default_scheduler_config {
+    memory_oversubscription_enabled = ${memory_oversubscription_enabled}
+  }
+}

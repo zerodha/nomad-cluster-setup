@@ -18,8 +18,14 @@ resource "aws_iam_role" "nomad_server" {
   assume_role_policy = data.aws_iam_policy_document.instance-assume-role-policy.json
 }
 
+resource "aws_iam_role_policy" "nomad_server" {
+  name   = "${var.cluster_name}-server"
+  role   = aws_iam_role.nomad_server.id
+  policy = local.instance_policy
+}
+
 resource "aws_iam_role_policy_attachment" "default_iam_policies" {
-  for_each   = toset(var.default_iam_policies)
+  for_each   = toset(var.iam_policy_arns)
   role       = aws_iam_role.nomad_server.name
   policy_arn = each.key
 }

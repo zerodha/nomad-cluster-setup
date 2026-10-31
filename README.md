@@ -8,6 +8,7 @@ Terraform modules to deploy a [HashiCorp Nomad]((https://www.nomadproject.io/)) 
 
 - [Nomad Cluster Setup](#nomad-cluster-setup)
   - [AMI](#ami)
+  - [Secrets](#secrets)
   - [AWS Resources](#aws-resources)
     - [Auto Scaling Group (ASG)](#auto-scaling-group-asg)
     - [Security Group](#security-group)
@@ -39,6 +40,27 @@ make build
 
 NOTE: `dry_run` mode is toggled as true by default. To build the AMI, set the `dry_run` variable in [`Makefile`](./packer/Makefile) to `false`.
 
+Any image works if it has systemd, cloud-init, the AWS CLI v2, and Nomad 1.7 or later installed with its systemd unit but not enabled, for example from the HashiCorp RPM or deb package. The generated configuration is validated against Nomad 2.1.1. The setup scripts only write under `/etc` and to the host volume paths you configure, so immutable images with a read-only `/usr`, such as bootc images, are supported. Nomad keeps its state in `/opt/nomad/data`, so `/opt/nomad` must be writable.
+
+NOTE: The Packer template still installs Nomad 1.6.1 by default and does not install the AWS CLI. Override `nomad_version` and add the AWS CLI before using it with these modules.
+
+## Secrets
+
+Secrets never pass through Terraform. Store them as SecureString parameters under one SSM path and pass that path as `secrets_ssm_prefix`. Instances read them at boot and write them to root-only files in `/etc/nomad.d`.
+
+| Parameter | Read by | Required when |
+|-----------|---------|---------------|
+| `<prefix>/gossip_key` | servers | always |
+| `<prefix>/acl_bootstrap_token` | servers | `nomad_acl_enable = true` |
+| `<prefix>/tls/ca_cert`, `<prefix>/tls/cert`, `<prefix>/tls/key` | servers and clients | `tls_enabled = true` |
+
+Servers need a certificate valid for `server.<nomad_region>.nomad`. Give clients a separate prefix with client certificates (`client.<nomad_region>.nomad`) so that a client certificate cannot act as a server.
+
+```bash
+aws ssm put-parameter --type SecureString --name /nomad/example/gossip_key --value "$(nomad operator gossip keyring generate)"
+aws ssm put-parameter --type SecureString --name /nomad/example/acl_bootstrap_token --value "$(uuidgen)"
+```
+
 ## AWS Resources
 
 The key resources provisioned by this module are:
@@ -65,7 +87,13 @@ The common Security Group is attached to both client and server nodes, enabling 
 
 ### IAM Role
 
-An IAM Role is attached to each EC2 instance within the ASG. This role is granted a minimal set of IAM permissions, allowing each instance to automatically discover other instances in the same ASG and form a cluster with them.
+An IAM Role is attached to each EC2 instance within the ASG. Its inline policy allows:
+
+- `ssm:GetParameter` and `ssm:GetParameters` on `<secrets_ssm_prefix>/*`.
+- `kms:Decrypt` through SSM only, limited to `kms_key_arn` when it is set.
+- `ec2:DescribeInstances` and `ec2:DescribeTags` for cloud auto-join.
+
+Attach extra policies, such as S3 access for raft backups, with `iam_policy_arns`.
 
 ### ALB
 
@@ -75,10 +103,10 @@ An internal Application Load Balancer (ALB) is _optionally_ created for the Noma
 
 The [`setup_server`](./modules/nomad-servers/scripts/setup_server.tftpl.sh) script included in this project configures and bootstraps Nomad server nodes in an AWS Auto Scaling group. The script performs the following steps:
 
-- Configures the Nomad agent as a server on the EC2 instances and uses the `nomad_join_tag_value` tag to auto-join the cluster. Once all the server instances discover each other, they elect a leader.
-- Bootstraps the Nomad ACL system with a pre-configured token on the first server.
-  - It waits for the cluster leader to get elected before bootstrapping ACL.
-  - The token must be passed as the `nomad_acl_bootstrap_token` variable.
+- Writes the agent configuration to `/etc/nomad.d/{base,server,tls,secrets}.hcl` and removes the packaged `nomad.hcl`.
+- Reads the gossip key, the ACL bootstrap token, and the TLS files from SSM.
+- Starts Nomad. The servers use the `nomad_join_tag_value` tag to auto-join the cluster and elect a leader.
+- Bootstraps ACLs with the token from SSM. Every server retries until the cluster has a leader, and the servers that lose the race see that ACLs are already bootstrapped.
 
 ### Terraform Module Reference
 
@@ -88,9 +116,11 @@ Check out [`nomad_servers`](./modules/nomad-servers/README.mkdn) documentation f
 
 The [`setup_client`](./modules/nomad-clients/scripts/setup_client.tftpl.sh) script included in this project configures Nomad client nodes in an AWS Auto Scaling group. The script performs the following steps:
 
+- Writes the agent configuration to `/etc/nomad.d/{base,client,tls}.hcl` and removes the packaged `nomad.hcl`.
 - Configures the Nomad agent as a client on the EC2 instances and uses the `nomad_join_tag_value` tag to auto-join the cluster.
 - Configures DNS resolution for the Nomad cluster inside `exec` driver.
 - Prepares configurations for different task drivers.
+- Drains the node on shutdown for up to `drain_deadline`.
 
 ### Terraform Module Reference
 
@@ -102,19 +132,18 @@ Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation f
 
 ```hcl
 module "nomad_servers" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-servers?ref=v1.5.0"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-servers?ref=v2.0.0"
 
   cluster_name         = "demo-nomad"
+  cluster_tags         = { env = "demo" }
   nomad_join_tag_value = "demo"
   instance_count       = 3
-  ami                  = "ami-xyz"
-  vpc                  = "vpc-xyz"
-  subnets              = "subnet-xyz"
+  ami                  = "ami-0123456789abcdef0"
+  vpc                  = "vpc-0123456789abcdef0"
+  subnets              = ["subnet-0123456789abcdef0"]
   create_alb           = true
-  nomad_alb_hostname   = "nomad.example.internal"
-
-  nomad_gossip_encrypt_key  = var.nomad_gossip_encrypt_key
-  nomad_acl_bootstrap_token = var.nomad_acl_bootstrap_token
+  nomad_alb_hostname   = "nomad.example.com"
+  secrets_ssm_prefix   = "/nomad/example"
 }
 ```
 
@@ -122,17 +151,20 @@ module "nomad_servers" {
 
 ```hcl
 module "nomad_client_demo" {
-  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-clients?ref=v1.5.0"
+  source = "git::https://github.com/zerodha/nomad-cluster-setup//modules/nomad-clients?ref=v2.0.0"
 
   cluster_name              = "demo-nomad"
+  cluster_tags              = { env = "demo" }
   nomad_join_tag_value      = "demo"
   client_name               = "example-app"
   enable_docker_plugin      = true
-  ami                       = "ami-abc"
+  ami                       = "ami-0123456789abcdef0"
   instance_type             = "c6a.xlarge"
   instance_desired_count    = 10
-  vpc                       = "vpc-xyz"
-  subnets                   = "subnet-xyz"
+  instance_max_count        = 10
+  vpc                       = "vpc-0123456789abcdef0"
+  subnets                   = ["subnet-0123456789abcdef0"]
+  secrets_ssm_prefix        = "/nomad/example"
   route_53_resolver_address = "10.0.0.2"
 }
 ```
@@ -141,7 +173,7 @@ module "nomad_client_demo" {
 
 ### Other Examples
 
-* [Complete Cluster Setup](./examples)
+* [Complete Cluster Setup](./examples/complete-cluster-asg)
 
 ## Changelog
 
