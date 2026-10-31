@@ -33,12 +33,45 @@ run "plans_asg_with_defaults" {
   }
 }
 
-run "rejects_cluster_name_without_suffix" {
+run "accepts_cluster_name_without_suffix" {
   command = plan
 
   variables {
-    cluster_name = "test"
+    cluster_name = "demo"
+  }
+
+  assert {
+    condition     = aws_autoscaling_group.nomad_client.name == "demo-test" && aws_iam_role.nomad_client[0].name == "demo-test"
+    error_message = "Resources must be named from cluster_name as given."
+  }
+}
+
+run "rejects_cluster_name_over_28_characters" {
+  command = plan
+
+  variables {
+    cluster_name = "abcdefghijklmnopqrstuvwxyz123"
   }
 
   expect_failures = [var.cluster_name]
+}
+
+run "rejects_cluster_name_with_leading_hyphen" {
+  command = plan
+
+  variables {
+    cluster_name = "-demo"
+  }
+
+  expect_failures = [var.cluster_name]
+}
+
+run "rejects_iam_role_name_over_64_characters" {
+  command = plan
+
+  variables {
+    client_name = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz12"
+  }
+
+  expect_failures = [aws_iam_role.nomad_client]
 }

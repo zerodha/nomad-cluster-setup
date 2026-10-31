@@ -53,7 +53,7 @@ No modules.
 | <a name="input_alb_certificate_arn"></a> [alb\_certificate\_arn](#input\_alb\_certificate\_arn) | ARN of the HTTPS certificate to use with the ALB | `string` | `""` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | AMI ID to use for deploying Nomad servers | `string` | n/a | yes |
 | <a name="input_autoscale_metrics"></a> [autoscale\_metrics](#input\_autoscale\_metrics) | List of autoscaling metrics to enable for the Autoscaling Group | `list(string)` | <pre>[<br>  "GroupMinSize",<br>  "GroupMaxSize",<br>  "GroupDesiredCapacity",<br>  "GroupInServiceInstances",<br>  "GroupPendingInstances",<br>  "GroupStandbyInstances",<br>  "GroupTerminatingInstances",<br>  "GroupTotalInstances"<br>]</pre> | no |
-| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier for the cluster, used as a prefix for all resources | `string` | n/a | yes |
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Identifier for the cluster, used as a prefix for all resources. 1-28 lowercase letters, digits or hyphens, starting and ending with a letter or digit. | `string` | n/a | yes |
 | <a name="input_cluster_tags"></a> [cluster\_tags](#input\_cluster\_tags) | Map of tag key-value pairs to assign to the EC2 instances spawned by the ASG | `map(string)` | n/a | yes |
 | <a name="input_create_alb"></a> [create\_alb](#input\_create\_alb) | Whether to create an ALB for the Nomad servers or not | `bool` | `false` | no |
 | <a name="input_default_security_groups"></a> [default\_security\_groups](#input\_default\_security\_groups) | List of security group IDs to assign to the Nomad server instances | `list(string)` | `[]` | no |

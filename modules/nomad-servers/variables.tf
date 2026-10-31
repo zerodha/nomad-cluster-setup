@@ -31,12 +31,14 @@ variable "autoscale_metrics" {
 }
 
 variable "cluster_name" {
-  description = "Identifier for the cluster, used as a prefix for all resources"
+  description = "Identifier for the cluster, used as a prefix for all resources. 1-28 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
   type        = string
   nullable    = false
+
+  # The ALB is named "<cluster_name>-web" and AWS caps ALB names at 32 characters.
   validation {
-    condition     = endswith(var.cluster_name, "-nomad")
-    error_message = "The cluster_name value must be suffixed with -nomad"
+    condition     = length(var.cluster_name) <= 28 && can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.cluster_name))
+    error_message = "The cluster_name value must be 1-28 lowercase letters, digits or hyphens, and must start and end with a letter or digit."
   }
 }
 

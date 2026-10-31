@@ -98,11 +98,46 @@ run "plans_with_alb_https" {
   }
 }
 
-run "rejects_cluster_name_without_suffix" {
+run "accepts_longest_cluster_name" {
   command = plan
 
   variables {
-    cluster_name = "test"
+    cluster_name              = "abcdefghijklmnopqrstuvwxyz12"
+    create_alb                = true
+    nomad_server_incoming_ips = ["10.0.0.0/16"]
+  }
+
+  assert {
+    condition     = aws_lb.nomad[0].name == "abcdefghijklmnopqrstuvwxyz12-web" && length(aws_lb.nomad[0].name) == 32
+    error_message = "A 28 character cluster_name must give a 32 character ALB name."
+  }
+}
+
+run "rejects_cluster_name_over_28_characters" {
+  command = plan
+
+  variables {
+    cluster_name = "abcdefghijklmnopqrstuvwxyz123"
+  }
+
+  expect_failures = [var.cluster_name]
+}
+
+run "rejects_uppercase_cluster_name" {
+  command = plan
+
+  variables {
+    cluster_name = "Demo"
+  }
+
+  expect_failures = [var.cluster_name]
+}
+
+run "rejects_cluster_name_with_trailing_hyphen" {
+  command = plan
+
+  variables {
+    cluster_name = "demo-"
   }
 
   expect_failures = [var.cluster_name]
