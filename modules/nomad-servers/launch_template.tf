@@ -18,7 +18,7 @@ resource "aws_launch_template" "nomad_server" {
   }
 
   block_device_mappings {
-    device_name = "/dev/sda1"
+    device_name = data.aws_ami.nomad.root_device_name
 
     ebs {
       encrypted             = var.ebs_encryption

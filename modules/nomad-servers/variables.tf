@@ -30,12 +30,6 @@ variable "autoscale_metrics" {
   ]
 }
 
-variable "aws_region" {
-  type        = string
-  description = "AWS region to deploy the Nomad cluster in"
-  default     = "ap-south-1"
-}
-
 variable "cluster_name" {
   description = "Identifier for the cluster, used as a prefix for all resources"
   type        = string
@@ -57,8 +51,8 @@ variable "create_alb" {
   default     = false
 }
 
-variable "default_iam_policies" {
-  description = "List of IAM policy ARNs to attach to the Nomad server instances"
+variable "iam_policy_arns" {
+  description = "Extra IAM policy ARNs to attach to the Nomad server role, for example S3 access for raft backups"
   type        = list(string)
   default     = []
 }
@@ -93,40 +87,26 @@ variable "nomad_enable_mem_oversubscription" {
   default     = false
 }
 
-variable "enable_tls" {
-  description = "Whether to enable TLS on client nodes"
+variable "tls_enabled" {
+  description = "Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `server.<nomad_region>.nomad`."
   type        = bool
   default     = false
 }
 
-variable "tls_certificates" {
-  description = "Base64 encoded certificate files to use for Nomad Server TLS"
-  type = object({
-    ca_file   = string
-    cert_file = string
-    key_file  = string
-  })
-  default = {
-    ca_file   = ""
-    cert_file = ""
-    key_file  = ""
-  }
-}
-
 variable "tls_http_enable" {
-  description = "Enable TLS over HTTP for Nomad Server. Setting this option requires the end-user to set NOMAD_TLS* variables while accessing the CLI"
+  description = "Enable TLS and client certificate verification on the HTTP API when `tls_enabled` is true. CLI users then need the NOMAD_CACERT, NOMAD_CLIENT_CERT and NOMAD_CLIENT_KEY variables."
   type        = bool
   default     = false
 }
 
 variable "tls_rpc_enable" {
-  description = "Enable TLS over RPC for Nomad CLI. This is required for intra-client mTLS."
+  description = "Enable TLS on RPC and Raft traffic when `tls_enabled` is true"
   type        = bool
   default     = true
 }
 
 variable "instance_count" {
-  description = "Number of Nomad server instances to run"
+  description = "Number of Nomad server instances to run. Also used as `bootstrap_expect`."
   type        = number
   default     = 3
 
@@ -154,33 +134,10 @@ variable "nomad_acl_enable" {
   default     = true
 }
 
-# TODO: Add validation for the token format
-# TODO: Add validation to check if acl is enabled then value can't be null.
-variable "nomad_acl_bootstrap_token" {
-  description = "Nomad ACL bootstrap token to use for bootstrapping ACLs"
-  type        = string
-  sensitive   = true
-  default     = ""
-  # nullable    = true
-}
-
 variable "nomad_alb_hostname" {
   description = "ALB hostname to use for accessing the Nomad web UI"
   type        = string
   default     = "nomad.example.internal"
-}
-
-variable "nomad_bootstrap_expect" {
-  description = "Number of instances expected to bootstrap a new Nomad cluster"
-  type        = number
-  default     = 3
-}
-
-variable "nomad_gossip_encrypt_key" {
-  description = "Gossip encryption key to use for Nomad servers"
-  type        = string
-  sensitive   = true
-  nullable    = false
 }
 
 variable "nomad_join_tag_value" {
@@ -238,15 +195,15 @@ variable "extra_script_content" {
 }
 
 variable "http_put_response_hop_limit" {
-  description = "The hop limit for HTTP PUT response for the EC2 instance metadata service"
+  description = "The hop limit for HTTP PUT response for the EC2 instance metadata service. The default of 1 keeps the instance credentials away from containers on bridge networks."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "http_tokens" {
   description = "Whether the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be 'optional', 'required', or 'no-preference'."
   type        = string
-  default     = "optional"
+  default     = "required"
 }
 
 variable "nomad_http_max_conns_per_client" {
@@ -259,4 +216,34 @@ variable "nomad_job_gc_threshold" {
   description = "Minimum time a job must be in terminal state before it is eligible for garbage collection"
   type        = string
   default     = "4h"
+}
+
+variable "nomad_region" {
+  description = "Nomad region name for the agents"
+  type        = string
+  default     = "global"
+  nullable    = false
+}
+
+variable "nomad_datacenter" {
+  description = "Nomad datacenter name for the agents. Defaults to `cluster_name`."
+  type        = string
+  default     = null
+}
+
+variable "secrets_ssm_prefix" {
+  description = "SSM Parameter Store path that holds the cluster secrets as SecureString parameters, for example `/nomad/example`. Servers read `gossip_key` and, with ACLs enabled, `acl_bootstrap_token` under it at boot."
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^(/[A-Za-z0-9_.-]+)+$", var.secrets_ssm_prefix))
+    error_message = "The secrets_ssm_prefix value must start with \"/\", must not end with \"/\", and may only contain letters, digits, \"_\", \".\", \"-\" and \"/\"."
+  }
+}
+
+variable "kms_key_arn" {
+  description = "ARN of the customer managed KMS key that encrypts the secrets. Leave null when the parameters use the AWS managed `aws/ssm` key."
+  type        = string
+  default     = null
 }

@@ -1,0 +1,33 @@
+region     = "${nomad_region}"
+datacenter = "${nomad_datacenter}"
+data_dir   = "/opt/nomad/data"
+bind_addr  = "0.0.0.0"
+log_level  = "INFO"
+
+advertise {
+  http = "{{ GetPrivateIP }}"
+  rpc  = "{{ GetPrivateIP }}"
+  serf = "{{ GetPrivateIP }}"
+}
+
+acl {
+  enabled = ${acl_enabled}
+}
+
+consul {
+  auto_advertise   = false
+  server_auto_join = false
+  client_auto_join = false
+}
+
+vault {
+  enabled = false
+}
+
+telemetry {
+  collection_interval        = "15s"
+  disable_hostname           = true
+  prometheus_metrics         = true
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+}
