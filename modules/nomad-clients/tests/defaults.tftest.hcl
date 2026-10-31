@@ -16,7 +16,6 @@ variables {
   nomad_join_tag_value      = "test"
   route_53_resolver_address = "10.0.0.2"
   secrets_ssm_prefix        = "/nomad/example"
-  vpc                       = "vpc-0123456789abcdef0"
   subnets                   = ["subnet-0123456789abcdef0"]
 }
 

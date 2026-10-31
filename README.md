@@ -160,7 +160,6 @@ module "nomad_client_demo" {
   instance_type             = "c6a.xlarge"
   instance_desired_count    = 10
   instance_max_count        = 10
-  vpc                       = "vpc-0123456789abcdef0"
   subnets                   = ["subnet-0123456789abcdef0"]
   secrets_ssm_prefix        = "/nomad/example"
   route_53_resolver_address = "10.0.0.2"

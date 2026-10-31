@@ -88,7 +88,6 @@ No modules.
 | <a name="input_tls_enabled"></a> [tls\_enabled](#input\_tls\_enabled) | Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `client.<nomad_region>.nomad`. | `bool` | `false` | no |
 | <a name="input_tls_http_enable"></a> [tls\_http\_enable](#input\_tls\_http\_enable) | Enable TLS and client certificate verification on the HTTP API when `tls_enabled` is true | `bool` | `false` | no |
 | <a name="input_tls_rpc_enable"></a> [tls\_rpc\_enable](#input\_tls\_rpc\_enable) | Enable TLS on RPC traffic when `tls_enabled` is true | `bool` | `true` | no |
-| <a name="input_vpc"></a> [vpc](#input\_vpc) | AWS Virtual Private Cloud (VPC) to deploy all resources in | `string` | n/a | yes |
 | <a name="input_wait_for_capacity_timeout"></a> [wait\_for\_capacity\_timeout](#input\_wait\_for\_capacity\_timeout) | Time for which Terraform waits after ASG creation to see if instances are running. | `string` | `"10m"` | no |
 
 ## Outputs

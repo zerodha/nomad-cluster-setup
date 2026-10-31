@@ -130,12 +130,6 @@ variable "subnets" {
   default     = []
 }
 
-variable "vpc" {
-  description = "AWS Virtual Private Cloud (VPC) to deploy all resources in"
-  type        = string
-  nullable    = false
-}
-
 # Autoscale Group Configuration
 
 variable "autoscale_metrics" {
