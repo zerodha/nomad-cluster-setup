@@ -243,7 +243,7 @@ run "renders_gc_ui_and_extra_config" {
     nomad_batch_eval_gc_threshold   = "168h"
     nomad_deployment_gc_threshold   = "168h"
     nomad_http_max_conns_per_client = 1000
-    nomad_ui_label                  = "test cluster"
+    nomad_ui_label                  = { text = "test cluster", background_color = "#9f1239", text_color = "#fff1f2" }
     nomad_extra_config              = "log_json = true"
   }
 
@@ -256,6 +256,8 @@ run "renders_gc_ui_and_extra_config" {
         "deployment_gc_threshold = \"168h\"",
         "http_max_conns_per_client = 1000",
         "text = \"test cluster\"",
+        "background_color = \"#9f1239\"",
+        "text_color = \"#fff1f2\"",
         "write_file /etc/nomad.d/zz-extra.hcl 0644",
         "log_json = true",
         "disable_update_check = true",

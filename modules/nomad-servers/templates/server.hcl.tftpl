@@ -37,6 +37,12 @@ server {
 ui {
   label {
     text = ${jsonencode(ui_label)}
+%{ if ui_label_background_color != "" ~}
+    background_color = ${jsonencode(ui_label_background_color)}
+%{ endif ~}
+%{ if ui_label_text_color != "" ~}
+    text_color = ${jsonencode(ui_label_text_color)}
+%{ endif ~}
   }
 }
 %{ endif ~}
