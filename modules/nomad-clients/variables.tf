@@ -325,18 +325,6 @@ variable "node_pool" {
   }
 }
 
-variable "drain_deadline" {
-  description = "How long a client drains its allocations on shutdown before stopping them, as a duration such as `5m` or `1h30m`"
-  type        = string
-  default     = "5m"
-  nullable    = false
-
-  validation {
-    condition     = can(regex("^([0-9]+(ms|s|m|h))+$", var.drain_deadline))
-    error_message = "The drain_deadline value must be a duration made of ms, s, m or h units, such as \"5m\" or \"1h30m\"."
-  }
-}
-
 variable "secrets_ssm_prefix" {
   description = "SSM Parameter Store path that holds the cluster secrets as SecureString parameters, for example `/nomad/example`. With `tls_enabled`, clients read `tls/ca_cert`, `tls/cert` and `tls/key` under it at boot."
   type        = string

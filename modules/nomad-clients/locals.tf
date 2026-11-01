@@ -20,7 +20,6 @@ locals {
     docker_enabled            = var.enable_docker_plugin
     nomad_file_limit          = var.nomad_file_limit
     extra_config              = var.nomad_extra_config
-    drain_deadline            = var.drain_deadline
     host_volumes              = values(var.nomad_client_exec_host_volumes)
     tls_enabled               = var.tls_enabled
 
@@ -35,7 +34,6 @@ locals {
       join_tag_key             = "nomad_ec2_join"
       join_tag_value           = var.nomad_join_tag_value
       node_pool                = var.node_pool
-      drain_deadline           = var.drain_deadline
       gc_interval              = var.nomad_gc_interval
       gc_disk_usage_threshold  = var.nomad_gc_disk_usage_threshold
       gc_inode_usage_threshold = var.nomad_gc_inode_usage_threshold

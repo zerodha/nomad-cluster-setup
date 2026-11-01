@@ -112,7 +112,7 @@ The [`setup_client`](./modules/nomad-clients/scripts/setup_client.tftpl.sh) scri
 - Configures the Nomad agent as a client on the EC2 instances and uses the `nomad_join_tag_value` tag to auto-join the cluster.
 - Configures DNS resolution for the Nomad cluster inside `exec` driver.
 - Prepares configurations for different task drivers.
-- Drains the node on shutdown for up to `drain_deadline`.
+- Does not drain on shutdown: a node that reboots in place would come back ineligible ([hashicorp/nomad#17093](https://github.com/hashicorp/nomad/issues/17093)). Drain a node yourself before planned maintenance.
 
 ### Terraform Module Reference
 
