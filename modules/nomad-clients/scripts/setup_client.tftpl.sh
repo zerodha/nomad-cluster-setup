@@ -62,6 +62,13 @@ NOMAD_CONFIG
 write_file /etc/nomad.d/client.hcl 0644 <<'NOMAD_CONFIG'
 ${chomp(client_hcl)}
 NOMAD_CONFIG
+%{ if extra_config != "" ~}
+
+# Loaded last, so it overrides the files above.
+write_file /etc/nomad.d/zz-extra.hcl 0644 <<'NOMAD_CONFIG'
+${chomp(extra_config)}
+NOMAD_CONFIG
+%{ endif ~}
 
 # Exec tasks use this file as /etc/resolv.conf through chroot_env.
 # See https://github.com/hashicorp/nomad/issues/11033
