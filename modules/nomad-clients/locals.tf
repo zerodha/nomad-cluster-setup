@@ -44,6 +44,8 @@ locals {
       meta                     = local.node_meta
       host_volumes             = var.nomad_client_exec_host_volumes
       docker_enabled           = var.enable_docker_plugin
+      docker_allow_privileged  = var.docker_allow_privileged
+      raw_exec_enabled         = var.enable_raw_exec
     })
 
     tls_hcl = templatefile("${path.module}/templates/tls.hcl.tftpl", {

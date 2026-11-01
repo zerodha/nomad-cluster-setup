@@ -229,3 +229,34 @@ run "renders_extra_config" {
     error_message = "User data is missing the GC or extra configuration."
   }
 }
+
+run "host_privileges_are_opt_in" {
+  command = plan
+
+  assert {
+    condition     = !strcontains(base64decode(aws_launch_template.nomad_client.user_data), "plugin \"raw_exec\"")
+    error_message = "raw_exec must be disabled by default."
+  }
+
+  assert {
+    condition     = strcontains(base64decode(aws_launch_template.nomad_client.user_data), "allow_privileged = false")
+    error_message = "Privileged Docker tasks must be disabled by default."
+  }
+}
+
+run "enables_host_privileges_when_asked" {
+  command = plan
+
+  variables {
+    enable_raw_exec         = true
+    docker_allow_privileged = true
+  }
+
+  assert {
+    condition = alltrue([
+      for s in ["plugin \"raw_exec\"", "allow_privileged = true"] :
+      strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
+    ])
+    error_message = "raw_exec and privileged Docker must render when enabled."
+  }
+}

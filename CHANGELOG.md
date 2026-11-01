@@ -24,6 +24,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - nomad-clients: the unused `vpc` input is removed. Migration: delete it from the module call.
 - `cluster_name` no longer needs a `-nomad` suffix. It must be 1-28 lowercase letters, digits or hyphens that start and end with a letter or digit, and in nomad-clients `<cluster_name>-<client_name>` must fit in 64 characters. Migration: shorten or lowercase names that fail; renaming replaces the named resources.
 - The `packer/` template is removed. Migration: build an image that meets the [AMI](./README.md#ami) requirements.
+- nomad-clients: `raw_exec` and privileged Docker tasks are off by default. Set `enable_raw_exec = true` or `docker_allow_privileged = true` to keep jobs that use them working. Both give tasks root on the host.
 
 ### Features
 
