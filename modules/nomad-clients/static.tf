@@ -101,6 +101,12 @@ resource "aws_instance" "static" {
   # New AMIs and config reach it then; bootc updates the OS in place meanwhile.
   lifecycle {
     ignore_changes = [ami, launch_template, user_data, user_data_base64]
+
+    # See the same check on the launch template.
+    precondition {
+      condition     = can(regex("^[[:ascii:]]*$", data.cloudinit_config.static[each.key].rendered))
+      error_message = "User data must be ASCII. Check text inputs such as node meta, nomad_extra_config and extra scripts."
+    }
   }
 }
 
