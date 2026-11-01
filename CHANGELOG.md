@@ -25,6 +25,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - `cluster_name` no longer needs a `-nomad` suffix. It must be 1-28 lowercase letters, digits or hyphens that start and end with a letter or digit, and in nomad-clients `<cluster_name>-<client_name>` must fit in 64 characters. Migration: shorten or lowercase names that fail; renaming replaces the named resources.
 - The `packer/` template is removed. Migration: build an image that meets the [AMI](./README.md#ami) requirements.
 - nomad-clients: `raw_exec` and privileged Docker tasks are off by default. Set `enable_raw_exec = true` or `docker_allow_privileged = true` to keep jobs that use them working. Both give tasks root on the host.
+- nomad-clients: `static_nodes` replaces the v1 `ec2` client type. Each node is keyed by name and gets an EBS data volume that outlives the instance, mounted before Nomad starts and exposed as a host volume. Setting it creates instances instead of the ASG, and the ASG address moves to `aws_autoscaling_group.nomad_client[0]`.
 - nomad-clients: clients no longer drain on shutdown, and `drain_deadline` is removed. A node that reboots in place keeps its ID and stayed ineligible after the drain, so every reboot, including image updates, took it out of scheduling ([hashicorp/nomad#17093](https://github.com/hashicorp/nomad/issues/17093)). Drain nodes yourself before planned maintenance.
 
 ### Features
@@ -52,9 +53,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 
 ### Upgrading from v1
 
-1. Store the existing gossip key and ACL bootstrap token as SecureString parameters, and the TLS files if TLS is enabled. See [Secrets](./README.md#secrets). Use the current values: servers keep their gossip keyring in the data directory, and an already bootstrapped cluster keeps its token.
-2. Replace the removed inputs with `secrets_ssm_prefix` and the renamed inputs.
-3. Replace the instances, for example with an ASG instance refresh, so they boot with the new launch template.
+Build a new v2 cluster and move jobs to it; do not change the module ref of a running cluster in place. See [Upgrading from v1 to v2](./docs/upgrading-v1-to-v2.md). v1 stays on the `release/v1` branch for security and critical fixes.
 
 ---
 

@@ -1,4 +1,6 @@
 resource "aws_autoscaling_group" "nomad_client" {
+  count = length(var.static_nodes) == 0 ? 1 : 0
+
   name                      = "${var.cluster_name}-${var.client_name}"
   max_size                  = var.instance_max_count
   min_size                  = var.instance_min_count
@@ -65,6 +67,6 @@ resource "aws_autoscaling_group" "nomad_client" {
 }
 
 moved {
-  from = aws_autoscaling_group.nomad_client[0]
-  to   = aws_autoscaling_group.nomad_client
+  from = aws_autoscaling_group.nomad_client
+  to   = aws_autoscaling_group.nomad_client[0]
 }

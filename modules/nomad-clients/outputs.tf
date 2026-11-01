@@ -5,7 +5,18 @@ output "nomad_client_iam_profile" {
 
 output "nomad_client_asg" {
   description = "Autoscaling group for the Nomad client nodes"
-  value       = aws_autoscaling_group.nomad_client.name
+  value       = one(aws_autoscaling_group.nomad_client[*].name)
+}
+
+output "static_nodes" {
+  description = "Static nodes by key, with their instance ID, private IP and data volume ID"
+  value = {
+    for key, instance in aws_instance.static : key => {
+      instance_id    = instance.id
+      private_ip     = instance.private_ip
+      data_volume_id = aws_ebs_volume.data[key].id
+    }
+  }
 }
 
 output "nomad_client_iam_role_arn" {
