@@ -79,6 +79,18 @@ variable "enable_docker_plugin" {
   default     = true
 }
 
+variable "docker_allow_privileged" {
+  description = "Allow Docker tasks to set `privileged = true`. A privileged container has root on the host."
+  type        = bool
+  default     = false
+}
+
+variable "enable_raw_exec" {
+  description = "Enable the raw_exec driver. Its tasks run as root on the host with no isolation, so any job that can be submitted can take over the node."
+  type        = bool
+  default     = false
+}
+
 variable "tls_enabled" {
   description = "Enable TLS. The CA, certificate and key are read at boot from the `tls/ca_cert`, `tls/cert` and `tls/key` parameters under `secrets_ssm_prefix`. The certificate must be valid for `client.<nomad_region>.nomad`."
   type        = bool

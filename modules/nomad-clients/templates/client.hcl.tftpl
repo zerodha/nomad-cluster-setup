@@ -65,12 +65,15 @@ plugin "exec" {
     "net_bind_service", "setfcap", "setgid", "setpcap", "setuid", "sys_chroot", "sys_time"]
   }
 }
+%{ if raw_exec_enabled ~}
 
+# raw_exec runs tasks as the Nomad agent user, root, with no isolation.
 plugin "raw_exec" {
   config {
     enabled = true
   }
 }
+%{ endif ~}
 %{ if docker_enabled ~}
 
 plugin "docker" {
@@ -78,7 +81,7 @@ plugin "docker" {
     auth {
       config = "/etc/docker/config.json"
     }
-    allow_privileged = true
+    allow_privileged = ${docker_allow_privileged}
     volumes {
       enabled = true
     }
