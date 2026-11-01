@@ -355,6 +355,11 @@ variable "static_nodes" {
     data volume in its subnet's AZ, mounted at `data_volume_mount_path` and
     exposed as the `data_volume_host_volume` Nomad host volume, plus node meta
     `static_node = <key>` for constraints. The volume outlives the instance.
+
+    `private_ip` pins the node's address inside its subnet, for peers that
+    are configured by IP; a replacement instance gets the same address.
+    `data_volume_encrypted` overrides `ebs_encryption` for one volume, so an
+    existing unencrypted volume can be imported without being replaced.
   EOT
   type = map(object({
     subnet_id              = string
@@ -363,6 +368,8 @@ variable "static_nodes" {
     data_volume_type       = optional(string, "gp3")
     data_volume_iops       = optional(number)
     data_volume_throughput = optional(number)
+    data_volume_encrypted  = optional(bool)
+    private_ip             = optional(string)
   }))
   default  = {}
   nullable = false

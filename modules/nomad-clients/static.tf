@@ -15,7 +15,7 @@ resource "aws_ebs_volume" "data" {
   type              = each.value.data_volume_type
   iops              = each.value.data_volume_iops
   throughput        = each.value.data_volume_throughput
-  encrypted         = var.ebs_encryption
+  encrypted         = coalesce(each.value.data_volume_encrypted, var.ebs_encryption)
   kms_key_id        = var.data_volume_kms_key_arn
 
   tags = merge(
@@ -81,6 +81,7 @@ resource "aws_instance" "static" {
   }
 
   subnet_id               = each.value.subnet_id
+  private_ip              = each.value.private_ip
   instance_type           = coalesce(each.value.instance_type, var.instance_type)
   user_data_base64        = base64encode(data.cloudinit_config.static[each.key].rendered)
   disable_api_termination = var.static_termination_protection

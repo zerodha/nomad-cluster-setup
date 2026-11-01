@@ -95,3 +95,23 @@ protection. To move a node to a new AMI or config:
 To remove a node and delete its data, remove it from `static_nodes`, run
 `tofu state rm` on its `aws_ebs_volume.data` entry, apply, then delete the
 volume in AWS after taking a snapshot.
+
+## Adopting an existing data volume
+
+When an old node keeps its data on a separate EBS volume (not the root
+disk), move the volume itself instead of restoring a backup:
+
+1. Stop the job on the old cluster, then detach the volume. Snapshot it first.
+2. Add a static node in the volume's AZ whose `data_volume_*` values match
+   the volume: size, type, IOPS, throughput and `data_volume_encrypted`. A
+   mismatch in AZ or encryption would replace the volume, which
+   `prevent_destroy` blocks. Set `data_volume_mount_path` to the path the job
+   already uses, such as `/mnt/data`.
+3. Import it before the first apply:
+   `tofu import 'module.<name>.aws_ebs_volume.data["<key>"]' vol-...`
+4. Apply. The node mounts the volume with its existing filesystem (ext4 and
+   xfs both work) and never formats it. A volume with a partition table is
+   refused; copy its data to a fresh volume instead.
+
+Set `private_ip` on a node when other services reach it by IP, such as
+database or etcd peers. A replacement instance gets the same address.
