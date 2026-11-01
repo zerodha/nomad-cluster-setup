@@ -32,7 +32,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - An inline instance policy grants read access to `<secrets_ssm_prefix>/*`, `kms:Decrypt` through SSM (optionally limited to `kms_key_arn`), and the EC2 calls that cloud auto-join needs.
 - nomad-clients: `node_pool` input, and `drain_on_shutdown` with a `drain_deadline` input (default `5m`).
 - nomad-servers: `nomad_eval_gc_threshold`, `nomad_batch_eval_gc_threshold` and `nomad_deployment_gc_threshold` set the remaining server GC thresholds. Their defaults match Nomad's.
-- nomad-servers: `nomad_ui_label` shows a banner in the Nomad UI to tell clusters apart.
+- nomad-servers: `nomad_ui_label` shows a banner in the Nomad UI to tell clusters apart. It takes `text` and optional `background_color` and `text_color`.
 - Both modules: `nomad_extra_config` writes extra agent HCL to `/etc/nomad.d/zz-extra.hcl`, which loads last and overrides module defaults.
 - Both modules: agents set `disable_update_check = true`, and servers enable `plan_rejection_tracker`.
 

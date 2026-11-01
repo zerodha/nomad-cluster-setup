@@ -245,9 +245,13 @@ variable "nomad_deployment_gc_threshold" {
 }
 
 variable "nomad_ui_label" {
-  description = "Text shown in a banner at the top of the Nomad UI, to tell clusters apart. Empty shows no banner."
-  type        = string
-  default     = ""
+  description = "Banner at the top of the Nomad UI, to tell clusters apart. Colors are CSS values, such as `#9f1239`. Null shows no banner."
+  type = object({
+    text             = string
+    background_color = optional(string, "")
+    text_color       = optional(string, "")
+  })
+  default = null
 }
 
 variable "nomad_extra_config" {

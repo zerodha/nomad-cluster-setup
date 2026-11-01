@@ -30,7 +30,9 @@ locals {
       eval_gc_threshold               = var.nomad_eval_gc_threshold
       batch_eval_gc_threshold         = var.nomad_batch_eval_gc_threshold
       deployment_gc_threshold         = var.nomad_deployment_gc_threshold
-      ui_label                        = var.nomad_ui_label
+      ui_label                        = var.nomad_ui_label == null ? "" : var.nomad_ui_label.text
+      ui_label_background_color       = var.nomad_ui_label == null ? "" : var.nomad_ui_label.background_color
+      ui_label_text_color             = var.nomad_ui_label == null ? "" : var.nomad_ui_label.text_color
       http_max_conns_per_client       = var.nomad_http_max_conns_per_client
       memory_oversubscription_enabled = var.nomad_enable_mem_oversubscription
     })
