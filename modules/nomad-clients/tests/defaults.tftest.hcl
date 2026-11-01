@@ -28,7 +28,7 @@ run "plans_asg_with_defaults" {
   }
 
   assert {
-    condition     = aws_autoscaling_group.nomad_client.name == "test-nomad-test"
+    condition     = aws_autoscaling_group.nomad_client[0].name == "test-nomad-test"
     error_message = "The ASG must be named <cluster_name>-<client_name>."
   }
 }
@@ -41,7 +41,7 @@ run "accepts_cluster_name_without_suffix" {
   }
 
   assert {
-    condition     = aws_autoscaling_group.nomad_client.name == "demo-test" && aws_iam_role.nomad_client[0].name == "demo-test"
+    condition     = aws_autoscaling_group.nomad_client[0].name == "demo-test" && aws_iam_role.nomad_client[0].name == "demo-test"
     error_message = "Resources must be named from cluster_name as given."
   }
 }

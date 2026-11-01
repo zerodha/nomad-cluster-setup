@@ -359,3 +359,58 @@ variable "nomad_extra_config" {
   type        = string
   default     = ""
 }
+
+variable "static_nodes" {
+  description = <<-EOT
+    Stateful nodes, keyed by a short name such as `pg-1`. When set, the module
+    creates one instance per key instead of the ASG. Each node gets its own EBS
+    data volume in its subnet's AZ, mounted at `data_volume_mount_path` and
+    exposed as the `data_volume_host_volume` Nomad host volume, plus node meta
+    `static_node = <key>` for constraints. The volume outlives the instance.
+  EOT
+  type = map(object({
+    subnet_id              = string
+    data_volume_size       = number
+    instance_type          = optional(string)
+    data_volume_type       = optional(string, "gp3")
+    data_volume_iops       = optional(number)
+    data_volume_throughput = optional(number)
+  }))
+  default  = {}
+  nullable = false
+
+  validation {
+    condition     = alltrue([for key in keys(var.static_nodes) : can(regex("^[a-z0-9]([a-z0-9-]{0,18}[a-z0-9])?$", key))])
+    error_message = "static_nodes keys must be 1-20 lowercase letters, digits or hyphens, and start and end with a letter or digit."
+  }
+}
+
+variable "data_volume_mount_path" {
+  description = "Where static nodes mount their data volume"
+  type        = string
+  default     = "/var/lib/nomad-data"
+}
+
+variable "data_volume_host_volume" {
+  description = "Nomad host volume name for the data volume on static nodes"
+  type        = string
+  default     = "data"
+}
+
+variable "data_volume_tags" {
+  description = "Extra tags for static node data volumes, such as AWS Backup selectors. Applied after ebs_tags."
+  type        = map(string)
+  default     = {}
+}
+
+variable "data_volume_kms_key_arn" {
+  description = "KMS key for static node data volumes. Null uses the account's default EBS key."
+  type        = string
+  default     = null
+}
+
+variable "static_termination_protection" {
+  description = "Enable EC2 termination protection on static nodes. Turn it off for the apply that replaces a node."
+  type        = bool
+  default     = true
+}

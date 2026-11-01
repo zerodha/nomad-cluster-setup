@@ -114,6 +114,10 @@ The [`setup_client`](./modules/nomad-clients/scripts/setup_client.tftpl.sh) scri
 - Prepares configurations for different task drivers.
 - Drains the node on shutdown for up to `drain_deadline`.
 
+### Stateful nodes
+
+For databases and other stateful jobs, set `static_nodes` instead of using the ASG. Each named node is a standalone instance with its own EBS data volume, mounted at `/var/lib/nomad-data` and exposed as the Nomad host volume `data`. The volume outlives the instance, so replacing the node for a new AMI keeps the data. See [Upgrading from v1 to v2](./docs/upgrading-v1-to-v2.md#stateful-nodes) for job constraints and the replacement procedure.
+
 ### Terraform Module Reference
 
 Check out [`nomad_clients`](./modules/nomad-clients/README.mkdn) documentation for module reference.
