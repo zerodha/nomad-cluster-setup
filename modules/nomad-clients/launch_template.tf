@@ -59,6 +59,13 @@ resource "aws_launch_template" "nomad_client" {
 
   lifecycle {
     create_before_destroy = true
+
+    # Every MIME part is sent as 7bit. cloud-init drops a part that contains
+    # non-ASCII bytes, so the instance boots without running the setup script.
+    precondition {
+      condition     = can(regex("^[[:ascii:]]*$", data.cloudinit_config.config.rendered))
+      error_message = "User data must be ASCII. Check text inputs such as nomad_ui_label, node meta, nomad_extra_config and extra scripts for characters like \"·\" or \"—\"."
+    }
   }
 }
 

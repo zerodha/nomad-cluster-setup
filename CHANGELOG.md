@@ -48,6 +48,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - The raft backup script lives in `/etc/nomad.d` instead of `/usr/local/bin`, reads the token at run time, and no longer runs a backup as soon as the timer is enabled.
 - The exec task DNS search domain is correct in `us-east-1`.
 - nomad-servers: raft snapshot backups can upload. The server role gets `s3:PutObject` on `<nomad_raft_backup_bucket>/<cluster_name>/*` when backups are on; before, every upload failed with AccessDenied unless the caller attached its own policy. The schedule is the new `nomad_raft_backup_on_calendar` input, default `hourly` (was twice a day).
+- Plan fails if the rendered user data has a non-ASCII character. cloud-init dropped such a part, so the instance booted without Nomad configured.
 
 ### Upgrading from v1
 
