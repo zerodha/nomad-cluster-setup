@@ -10,7 +10,19 @@ limits {
 server {
   enabled          = true
   bootstrap_expect = ${bootstrap_expect}
-  job_gc_threshold = "${job_gc_threshold}"
+
+  # Dead periodic and batch child jobs, with their evals and allocs, stay
+  # visible until job_gc_threshold passes.
+  job_gc_threshold        = "${job_gc_threshold}"
+  eval_gc_threshold       = "${eval_gc_threshold}"
+  batch_eval_gc_threshold = "${batch_eval_gc_threshold}"
+  deployment_gc_threshold = "${deployment_gc_threshold}"
+
+  # Marks a node ineligible after repeated plan rejections instead of letting
+  # the scheduler keep placing work on it.
+  plan_rejection_tracker {
+    enabled = true
+  }
 
   server_join {
     retry_join = ["provider=aws region=${aws_region} tag_key=${join_tag_key} tag_value=${join_tag_value}"]
@@ -20,3 +32,11 @@ server {
     memory_oversubscription_enabled = ${memory_oversubscription_enabled}
   }
 }
+%{ if ui_label != "" ~}
+
+ui {
+  label {
+    text = ${jsonencode(ui_label)}
+  }
+}
+%{ endif ~}

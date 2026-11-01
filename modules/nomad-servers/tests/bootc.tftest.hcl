@@ -233,3 +233,46 @@ run "rejects_prefix_with_trailing_slash" {
 
   expect_failures = [var.secrets_ssm_prefix]
 }
+
+run "renders_gc_ui_and_extra_config" {
+  command = plan
+
+  variables {
+    nomad_job_gc_threshold          = "168h"
+    nomad_eval_gc_threshold         = "168h"
+    nomad_batch_eval_gc_threshold   = "168h"
+    nomad_deployment_gc_threshold   = "168h"
+    nomad_http_max_conns_per_client = 1000
+    nomad_ui_label                  = "test cluster"
+    nomad_extra_config              = "log_json = true"
+  }
+
+  assert {
+    condition = alltrue([
+      for s in [
+        "job_gc_threshold        = \"168h\"",
+        "eval_gc_threshold       = \"168h\"",
+        "batch_eval_gc_threshold = \"168h\"",
+        "deployment_gc_threshold = \"168h\"",
+        "http_max_conns_per_client = 1000",
+        "text = \"test cluster\"",
+        "write_file /etc/nomad.d/zz-extra.hcl 0644",
+        "log_json = true",
+        "disable_update_check = true",
+      ] : strcontains(base64decode(aws_launch_template.nomad_server.user_data), s)
+    ])
+    error_message = "User data is missing the GC, limit, UI label or extra configuration."
+  }
+}
+
+run "omits_optional_blocks_by_default" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      for s in ["zz-extra.hcl", "ui {"] :
+      !strcontains(base64decode(aws_launch_template.nomad_server.user_data), s)
+    ])
+    error_message = "The UI label and extra configuration must only be written when set."
+  }
+}

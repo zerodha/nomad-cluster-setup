@@ -289,7 +289,7 @@ variable "nomad_gc_inode_usage_threshold" {
 }
 
 variable "nomad_gc_max_allocs" {
-  description = "Maximum number of terminal allocations that the GC will keep before forcing collection"
+  description = "Terminal allocations a client keeps on disk before it deletes the oldest. Their task logs go with them, so raise this to keep logs of frequent cron runs."
   type        = number
   default     = 50
 }
@@ -352,4 +352,10 @@ variable "kms_key_arn" {
   description = "ARN of the customer managed KMS key that encrypts the secrets. Leave null when the parameters use the AWS managed `aws/ssm` key."
   type        = string
   default     = null
+}
+
+variable "nomad_extra_config" {
+  description = "Extra Nomad agent configuration in HCL, written to /etc/nomad.d/zz-extra.hcl. It loads last, so it overrides module defaults. Takes effect on instances launched after the change."
+  type        = string
+  default     = ""
 }

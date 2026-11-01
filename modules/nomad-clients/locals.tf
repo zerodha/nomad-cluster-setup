@@ -19,6 +19,7 @@ locals {
     dns_search_domain         = local.aws_region == "us-east-1" ? "ec2.internal" : "${local.aws_region}.compute.internal"
     docker_enabled            = var.enable_docker_plugin
     nomad_file_limit          = var.nomad_file_limit
+    extra_config              = var.nomad_extra_config
     drain_deadline            = var.drain_deadline
     host_volumes              = values(var.nomad_client_exec_host_volumes)
     tls_enabled               = var.tls_enabled
