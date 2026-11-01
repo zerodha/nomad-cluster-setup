@@ -3,16 +3,17 @@ locals {
   nomad_datacenter = coalesce(var.nomad_datacenter, var.cluster_name)
 
   setup_server = templatefile("${path.module}/scripts/setup_server.tftpl.sh", {
-    aws_region         = local.aws_region
-    cluster_name       = var.cluster_name
-    secrets_ssm_prefix = var.secrets_ssm_prefix
-    acl_enabled        = var.nomad_acl_enable
-    tls_enabled        = var.tls_enabled
-    tls_http_enable    = var.tls_http_enable
-    nomad_region       = var.nomad_region
-    nomad_file_limit   = var.nomad_file_limit
-    raft_backup_bucket = var.nomad_raft_backup_bucket
-    extra_config       = var.nomad_extra_config
+    aws_region              = local.aws_region
+    cluster_name            = var.cluster_name
+    secrets_ssm_prefix      = var.secrets_ssm_prefix
+    acl_enabled             = var.nomad_acl_enable
+    tls_enabled             = var.tls_enabled
+    tls_http_enable         = var.tls_http_enable
+    nomad_region            = var.nomad_region
+    nomad_file_limit        = var.nomad_file_limit
+    raft_backup_bucket      = var.nomad_raft_backup_bucket
+    raft_backup_on_calendar = var.nomad_raft_backup_on_calendar
+    extra_config            = var.nomad_extra_config
 
     base_hcl = templatefile("${path.module}/templates/base.hcl.tftpl", {
       nomad_region     = var.nomad_region
@@ -42,7 +43,7 @@ locals {
 
   instance_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Sid      = "ReadClusterSecrets"
         Effect   = "Allow"
@@ -66,6 +67,13 @@ locals {
         Action   = ["ec2:DescribeInstances", "ec2:DescribeTags"]
         Resource = "*"
       },
-    ]
+      ], var.nomad_raft_backup_bucket == "" ? [] : [
+      {
+        Sid      = "WriteRaftSnapshots"
+        Effect   = "Allow"
+        Action   = "s3:PutObject"
+        Resource = "arn:${data.aws_partition.current.partition}:s3:::${var.nomad_raft_backup_bucket}/${var.cluster_name}/*"
+      },
+    ])
   })
 }
