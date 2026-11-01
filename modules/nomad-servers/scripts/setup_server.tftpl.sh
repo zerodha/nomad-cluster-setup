@@ -82,6 +82,13 @@ NOMAD_CONFIG
 write_file /etc/nomad.d/server.hcl 0644 <<'NOMAD_CONFIG'
 ${chomp(server_hcl)}
 NOMAD_CONFIG
+%{ if extra_config != "" ~}
+
+# Loaded last, so it overrides the files above.
+write_file /etc/nomad.d/zz-extra.hcl 0644 <<'NOMAD_CONFIG'
+${chomp(extra_config)}
+NOMAD_CONFIG
+%{ endif ~}
 
 write_file /etc/nomad.d/cli.env 0644 <<'NOMAD_CONFIG'
 %{ if tls_enabled && tls_http_enable ~}

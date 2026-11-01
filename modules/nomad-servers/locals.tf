@@ -12,6 +12,7 @@ locals {
     nomad_region       = var.nomad_region
     nomad_file_limit   = var.nomad_file_limit
     raft_backup_bucket = var.nomad_raft_backup_bucket
+    extra_config       = var.nomad_extra_config
 
     base_hcl = templatefile("${path.module}/templates/base.hcl.tftpl", {
       nomad_region     = var.nomad_region
@@ -25,6 +26,10 @@ locals {
       join_tag_key                    = "nomad_ec2_join"
       join_tag_value                  = var.nomad_join_tag_value
       job_gc_threshold                = var.nomad_job_gc_threshold
+      eval_gc_threshold               = var.nomad_eval_gc_threshold
+      batch_eval_gc_threshold         = var.nomad_batch_eval_gc_threshold
+      deployment_gc_threshold         = var.nomad_deployment_gc_threshold
+      ui_label                        = var.nomad_ui_label
       http_max_conns_per_client       = var.nomad_http_max_conns_per_client
       memory_oversubscription_enabled = var.nomad_enable_mem_oversubscription
     })

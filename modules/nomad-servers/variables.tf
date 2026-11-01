@@ -209,15 +209,45 @@ variable "http_tokens" {
 }
 
 variable "nomad_http_max_conns_per_client" {
-  description = "Maximum number of concurrent connections per client IP for Nomad's HTTP API. Increase this when running behind a load balancer to avoid 'too many concurrent connections' errors."
+  description = "Maximum concurrent HTTP API connections per source IP. Behind the ALB every user shares the ALB's few addresses, and blocking queries hold connections open, so raise this when the UI is busy."
   type        = number
   default     = 100
 }
 
 variable "nomad_job_gc_threshold" {
-  description = "Minimum time a job must be in terminal state before it is eligible for garbage collection"
+  description = "How long a dead job, including periodic and dispatch children, stays before garbage collection. Its evals and allocs go with it, so this sets how long cron history is visible."
   type        = string
   default     = "4h"
+}
+
+variable "nomad_eval_gc_threshold" {
+  description = "How long a terminal evaluation of a service or system job stays before garbage collection"
+  type        = string
+  default     = "1h"
+}
+
+variable "nomad_batch_eval_gc_threshold" {
+  description = "How long a terminal evaluation of a batch job stays before garbage collection. Evals of dead batch jobs follow nomad_job_gc_threshold instead."
+  type        = string
+  default     = "24h"
+}
+
+variable "nomad_deployment_gc_threshold" {
+  description = "How long a terminal deployment stays before garbage collection"
+  type        = string
+  default     = "1h"
+}
+
+variable "nomad_ui_label" {
+  description = "Text shown in a banner at the top of the Nomad UI, to tell clusters apart. Empty shows no banner."
+  type        = string
+  default     = ""
+}
+
+variable "nomad_extra_config" {
+  description = "Extra Nomad agent configuration in HCL, written to /etc/nomad.d/zz-extra.hcl. It loads last, so it overrides module defaults. Takes effect on instances launched after the change."
+  type        = string
+  default     = ""
 }
 
 variable "nomad_region" {

@@ -208,3 +208,24 @@ run "rejects_prefix_with_trailing_slash" {
 
   expect_failures = [var.secrets_ssm_prefix]
 }
+
+run "renders_extra_config" {
+  command = plan
+
+  variables {
+    nomad_gc_max_allocs = 300
+    nomad_extra_config  = "log_json = true"
+  }
+
+  assert {
+    condition = alltrue([
+      for s in [
+        "gc_max_allocs            = 300",
+        "write_file /etc/nomad.d/zz-extra.hcl 0644",
+        "log_json = true",
+        "disable_update_check = true",
+      ] : strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
+    ])
+    error_message = "User data is missing the GC or extra configuration."
+  }
+}
