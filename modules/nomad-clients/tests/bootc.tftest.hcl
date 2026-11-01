@@ -260,3 +260,13 @@ run "enables_host_privileges_when_asked" {
     error_message = "raw_exec and privileged Docker must render when enabled."
   }
 }
+
+run "rejects_non_ascii_user_data" {
+  command = plan
+
+  variables {
+    nomad_extra_config = "# résumé"
+  }
+
+  expect_failures = [aws_launch_template.nomad_client]
+}

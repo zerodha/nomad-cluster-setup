@@ -308,3 +308,13 @@ run "no_s3_access_without_backups" {
     error_message = "The server role must not get S3 access when backups are off."
   }
 }
+
+run "rejects_non_ascii_user_data" {
+  command = plan
+
+  variables {
+    nomad_ui_label = { text = "PRODUCTION · test" }
+  }
+
+  expect_failures = [aws_launch_template.nomad_server]
+}
