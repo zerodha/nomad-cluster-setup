@@ -1,19 +1,12 @@
-# The packaged systemd unit stops Nomad with SIGINT, so leave gracefully on
-# both signals.
-# drain_on_shutdown only runs on a graceful leave.
-leave_on_interrupt = true
-leave_on_terminate = true
-
+# No drain_on_shutdown: a node that reboots in place keeps its ID and comes
+# back ineligible, so a reboot would silently remove it from scheduling.
+# https://github.com/hashicorp/nomad/issues/17093
 client {
   enabled   = true
   node_pool = "${node_pool}"
 
   server_join {
     retry_join = ["provider=aws region=${aws_region} tag_key=${join_tag_key} tag_value=${join_tag_value}"]
-  }
-
-  drain_on_shutdown {
-    deadline = "${drain_deadline}"
   }
 
   gc_interval              = "${gc_interval}"

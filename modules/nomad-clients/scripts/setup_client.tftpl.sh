@@ -79,16 +79,13 @@ NOMAD_CONFIG
 
 write_file /etc/systemd/system/nomad.service.d/nomad-cluster-setup.conf 0644 <<'NOMAD_CONFIG'
 %{ if docker_enabled ~}
-# Stop Nomad before Docker so the shutdown drain can still stop containers
-# gracefully.
+# Stop Nomad before Docker, so Docker is still up while Nomad stops.
 [Unit]
 After=docker.service
 
 %{ endif ~}
 [Service]
 LimitNOFILE=${nomad_file_limit}
-# Leave room for drain_on_shutdown to finish before systemd kills Nomad.
-TimeoutStopSec=${drain_deadline} 30s
 NOMAD_CONFIG
 %{ for volume in host_volumes ~}
 install -d "${volume.path}"

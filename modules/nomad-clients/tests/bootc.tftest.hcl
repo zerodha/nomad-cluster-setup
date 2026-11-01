@@ -67,8 +67,6 @@ run "renders_boot_config_without_secrets" {
         "region     = \"global\"",
         "datacenter = \"test-nomad\"",
         "node_pool = \"default\"",
-        "leave_on_interrupt = true",
-        "deadline = \"5m\"",
         "provider=aws region=eu-west-1 tag_key=nomad_ec2_join tag_value=test",
         "\"ec2_nomad_client\" = \"app\"",
         "\"ec2_env\" = \"test\"",
@@ -76,7 +74,6 @@ run "renders_boot_config_without_secrets" {
         "search eu-west-1.compute.internal",
         "After=docker.service",
         "LimitNOFILE=900000",
-        "TimeoutStopSec=5m 30s",
       ] : strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
     error_message = "User data is missing expected client configuration."
@@ -133,12 +130,11 @@ run "reads_tls_material_from_ssm" {
   }
 }
 
-run "follows_pool_drain_and_region_inputs" {
+run "follows_pool_and_region_inputs" {
   command = plan
 
   variables {
     node_pool            = "batch"
-    drain_deadline       = "1h30m"
     enable_docker_plugin = false
   }
 
@@ -151,10 +147,10 @@ run "follows_pool_drain_and_region_inputs" {
 
   assert {
     condition = alltrue([
-      for s in ["node_pool = \"batch\"", "deadline = \"1h30m\"", "TimeoutStopSec=1h30m 30s", "search ec2.internal"] :
+      for s in ["node_pool = \"batch\"", "search ec2.internal"] :
       strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
     ])
-    error_message = "node_pool, drain_deadline and the DNS search domain must follow the inputs."
+    error_message = "node_pool and the DNS search domain must follow the inputs."
   }
 
   assert {
@@ -179,14 +175,16 @@ run "skips_inline_policy_for_external_profile" {
   }
 }
 
-run "rejects_invalid_drain_deadline" {
+run "does_not_drain_on_shutdown" {
   command = plan
 
-  variables {
-    drain_deadline = "5 minutes"
+  assert {
+    condition = alltrue([
+      for s in ["drain_on_shutdown {", "leave_on_terminate", "TimeoutStopSec"] :
+      !strcontains(base64decode(aws_launch_template.nomad_client.user_data), s)
+    ])
+    error_message = "Clients must not drain on shutdown; a rebooted node would come back ineligible."
   }
-
-  expect_failures = [var.drain_deadline]
 }
 
 run "rejects_reserved_node_pool" {

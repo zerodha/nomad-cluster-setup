@@ -26,12 +26,13 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 - The `packer/` template is removed. Migration: build an image that meets the [AMI](./README.md#ami) requirements.
 - nomad-clients: `raw_exec` and privileged Docker tasks are off by default. Set `enable_raw_exec = true` or `docker_allow_privileged = true` to keep jobs that use them working. Both give tasks root on the host.
 - nomad-clients: `static_nodes` replaces the v1 `ec2` client type. Each node is keyed by name and gets an EBS data volume that outlives the instance, mounted before Nomad starts and exposed as a host volume. Setting it creates instances instead of the ASG, and the ASG address moves to `aws_autoscaling_group.nomad_client[0]`.
+- nomad-clients: clients no longer drain on shutdown, and `drain_deadline` is removed. A node that reboots in place keeps its ID and stayed ineligible after the drain, so every reboot, including image updates, took it out of scheduling ([hashicorp/nomad#17093](https://github.com/hashicorp/nomad/issues/17093)). Drain nodes yourself before planned maintenance.
 
 ### Features
 
 - `nomad_region` and `nomad_datacenter` inputs. The datacenter still defaults to `cluster_name`.
 - An inline instance policy grants read access to `<secrets_ssm_prefix>/*`, `kms:Decrypt` through SSM (optionally limited to `kms_key_arn`), and the EC2 calls that cloud auto-join needs.
-- nomad-clients: `node_pool` input, and `drain_on_shutdown` with a `drain_deadline` input (default `5m`).
+- nomad-clients: `node_pool` input.
 - nomad-servers: `nomad_eval_gc_threshold`, `nomad_batch_eval_gc_threshold` and `nomad_deployment_gc_threshold` set the remaining server GC thresholds. Their defaults match Nomad's.
 - nomad-servers: `nomad_ui_label` shows a banner in the Nomad UI to tell clusters apart. It takes `text` and optional `background_color` and `text_color`.
 - Both modules: `nomad_extra_config` writes extra agent HCL to `/etc/nomad.d/zz-extra.hcl`, which loads last and overrides module defaults.
