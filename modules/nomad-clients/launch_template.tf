@@ -5,8 +5,11 @@ resource "aws_launch_template" "nomad_client" {
   instance_type           = data.aws_ec2_instance_type.type.instance_type
   name                    = "${var.cluster_name}-client-${var.client_name}"
   tags                    = {}
-  vpc_security_group_ids  = concat(var.client_security_groups)
-  update_default_version  = true
+  # Static nodes set their security groups on the instance instead. AWS
+  # rejects instance-level groups from a launch template when the request also
+  # defines a network interface, which a pinned private_ip does.
+  vpc_security_group_ids = length(var.static_nodes) == 0 ? var.client_security_groups : null
+  update_default_version = true
 
   user_data = base64encode(data.cloudinit_config.config.rendered)
 

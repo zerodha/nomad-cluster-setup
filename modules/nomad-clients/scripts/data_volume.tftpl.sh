@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 # Mounts this node's EBS data volume before Nomad starts and exposes it as a
-# Nomad host volume. A blank volume is formatted; a volume with any existing
-# filesystem or partition table is never touched, so a replacement instance
-# picks up the same data. Nomad requires the mount, so it does not start and
-# write to the root disk when the volume is missing.
+# Nomad host volume. A blank volume is formatted as xfs. A volume that already
+# has a filesystem, such as one adopted from another cluster, is mounted as it
+# is with its own filesystem type, so a replacement instance picks up the same
+# data. A volume with a partition table is refused, never modified. Nomad
+# requires the mount, so it does not start and write to the root disk when the
+# volume is missing.
 
 set -Eeuo pipefail
 
@@ -63,11 +65,16 @@ elif ((rc != 0)); then
   exit 1
 fi
 
-uuid=$(blkid -s UUID -o value "$DEVICE")
+fstype=$(blkid -p -s TYPE -o value "$DEVICE" || true)
+uuid=$(blkid -p -s UUID -o value "$DEVICE" || true)
+if [[ -z "$fstype" || -z "$uuid" ]]; then
+  log ERROR "volume $VOLUME_ID has no filesystem on the whole device (partition table?); refusing to touch it"
+  exit 1
+fi
 if ! grep -q "^UUID=$uuid " /etc/fstab; then
   sed -i "\| $MOUNT_PATH |d" /etc/fstab
-  printf 'UUID=%s %s xfs defaults,nofail 0 2\n' "$uuid" "$MOUNT_PATH" >>/etc/fstab
+  printf 'UUID=%s %s %s defaults,nofail 0 2\n' "$uuid" "$MOUNT_PATH" "$fstype" >>/etc/fstab
 fi
 systemctl daemon-reload
 mountpoint -q "$MOUNT_PATH" || mount "$MOUNT_PATH"
-log INFO "mounted $VOLUME_ID at $MOUNT_PATH"
+log INFO "mounted $VOLUME_ID ($fstype) at $MOUNT_PATH"

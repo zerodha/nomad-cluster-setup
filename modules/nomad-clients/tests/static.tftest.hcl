@@ -109,3 +109,57 @@ run "rejects_invalid_static_node_key" {
 
   expect_failures = [var.static_nodes]
 }
+
+run "adopted_volume_keeps_its_encryption_and_node_its_ip" {
+  command = plan
+
+  variables {
+    static_nodes = {
+      "pg-1" = {
+        subnet_id             = "subnet-0123456789abcdef0"
+        data_volume_size      = 100
+        data_volume_encrypted = false
+        private_ip            = "10.0.1.10"
+      }
+    }
+  }
+
+  assert {
+    condition     = aws_ebs_volume.data["pg-1"].encrypted == false && aws_instance.static["pg-1"].private_ip == "10.0.1.10"
+    error_message = "data_volume_encrypted and private_ip must reach the volume and the instance."
+  }
+}
+
+run "data_volume_script_mounts_existing_filesystems_as_they_are" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      for s in [
+        "fstype=$(blkid -p -s TYPE -o value \"$DEVICE\" || true)",
+        "printf 'UUID=%s %s %s defaults,nofail 0 2\\n' \"$uuid\" \"$MOUNT_PATH\" \"$fstype\"",
+        "refusing to touch it",
+        ] : strcontains(templatefile("${path.module}/scripts/data_volume.tftpl.sh", {
+          volume_id   = "vol-0123456789abcdef0"
+          mount_path  = "/data"
+          host_volume = "data"
+          node_key    = "pg-1"
+          node_name   = "pg-pg-1"
+      }), s)
+    ])
+    error_message = "The script must mount an existing filesystem with its own type and refuse partitioned volumes."
+  }
+}
+
+run "static_nodes_set_security_groups_on_the_instance" {
+  command = plan
+
+  variables {
+    client_security_groups = ["sg-0123456789abcdef0"]
+  }
+
+  assert {
+    condition     = aws_launch_template.nomad_client.vpc_security_group_ids == null && aws_instance.static["pg-1"].vpc_security_group_ids == toset(["sg-0123456789abcdef0"])
+    error_message = "Static nodes must carry their security groups, not the launch template, so private_ip works."
+  }
+}
