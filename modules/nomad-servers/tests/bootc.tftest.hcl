@@ -276,3 +276,33 @@ run "omits_optional_blocks_by_default" {
     error_message = "The UI label and extra configuration must only be written when set."
   }
 }
+
+run "raft_backups_grant_scoped_s3_write" {
+  command = plan
+
+  variables {
+    nomad_raft_backup_bucket = "example-raft-backups"
+  }
+
+  assert {
+    condition     = strcontains(aws_iam_role_policy.nomad_server.policy, "arn:aws:s3:::example-raft-backups/test-nomad/*")
+    error_message = "The server role must be able to write snapshots under <bucket>/<cluster_name>/."
+  }
+
+  assert {
+    condition = alltrue([
+      for s in ["OnCalendar=hourly", "systemctl enable --now nomad-backup.timer"] :
+      strcontains(base64decode(aws_launch_template.nomad_server.user_data), s)
+    ])
+    error_message = "User data must install the hourly backup timer."
+  }
+}
+
+run "no_s3_access_without_backups" {
+  command = plan
+
+  assert {
+    condition     = !strcontains(aws_iam_role_policy.nomad_server.policy, "s3:")
+    error_message = "The server role must not get S3 access when backups are off."
+  }
+}

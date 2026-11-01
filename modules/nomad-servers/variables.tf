@@ -149,9 +149,15 @@ variable "nomad_join_tag_value" {
 }
 
 variable "nomad_raft_backup_bucket" {
-  description = "The S3 bucket to use for backing up Nomad RAFT snapshot"
+  description = "S3 bucket for raft snapshots. When set, the leader uploads a gzipped snapshot to `<bucket>/<cluster_name>/` on `nomad_raft_backup_on_calendar`, and the server role may write only under that prefix. Expire old snapshots with a bucket lifecycle rule."
   type        = string
   default     = ""
+}
+
+variable "nomad_raft_backup_on_calendar" {
+  description = "systemd OnCalendar expression for the raft snapshot backup. Only the leader uploads."
+  type        = string
+  default     = "hourly"
 }
 
 variable "nomad_server_incoming_ips" {

@@ -162,10 +162,11 @@ NOMAD_CONFIG
 
 write_file /etc/systemd/system/nomad-backup.timer 0644 <<'NOMAD_CONFIG'
 [Unit]
-Description=Run the Nomad raft snapshot backup twice daily
+Description=Run the Nomad raft snapshot backup
 
 [Timer]
-OnCalendar=*-*-* 00,12:00:00
+OnCalendar=${raft_backup_on_calendar}
+RandomizedDelaySec=5m
 Persistent=true
 
 [Install]
