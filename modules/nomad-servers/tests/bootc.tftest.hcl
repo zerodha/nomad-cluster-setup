@@ -248,6 +248,11 @@ run "renders_gc_ui_and_extra_config" {
   }
 
   assert {
+    condition     = can(regex("ui\\s*\\{\\s*enabled\\s*=\\s*true", base64decode(aws_launch_template.nomad_server.user_data)))
+    error_message = "Setting a UI label must keep the Nomad web UI enabled."
+  }
+
+  assert {
     condition = alltrue([
       for s in [
         "job_gc_threshold        = \"168h\"",
@@ -267,12 +272,17 @@ run "renders_gc_ui_and_extra_config" {
   }
 }
 
-run "omits_optional_blocks_by_default" {
+run "enables_ui_without_optional_configuration" {
   command = plan
 
   assert {
+    condition     = can(regex("ui\\s*\\{\\s*enabled\\s*=\\s*true", base64decode(aws_launch_template.nomad_server.user_data)))
+    error_message = "The Nomad web UI must be enabled without a label or extra configuration."
+  }
+
+  assert {
     condition = alltrue([
-      for s in ["zz-extra.hcl", "ui {"] :
+      for s in ["zz-extra.hcl", "label {"] :
       !strcontains(base64decode(aws_launch_template.nomad_server.user_data), s)
     ])
     error_message = "The UI label and extra configuration must only be written when set."

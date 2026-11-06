@@ -32,9 +32,11 @@ server {
     memory_oversubscription_enabled = ${memory_oversubscription_enabled}
   }
 }
-%{ if ui_label != "" ~}
 
 ui {
+  enabled = true
+%{ if ui_label != "" ~}
+
   label {
     text = ${jsonencode(ui_label)}
 %{ if ui_label_background_color != "" ~}
@@ -44,5 +46,5 @@ ui {
     text_color = ${jsonencode(ui_label_text_color)}
 %{ endif ~}
   }
-}
 %{ endif ~}
+}

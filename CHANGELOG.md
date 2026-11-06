@@ -40,6 +40,7 @@ Targets immutable images, such as bootc images with a read-only `/usr`, and Noma
 
 ### Fixes
 
+- nomad-servers: explicitly enable the web UI by default, with or without a UI label. A label-only `ui` block disabled the UI.
 - The Nomad unit is tuned with a systemd drop-in instead of `sed -i` on the packaged unit, which failed on a read-only `/usr`. The client's file limit check, which always passed, is gone.
 - The advertise address uses the private IP of the default route interface instead of a hardcoded `ens5`.
 - The launch template uses the AMI's root device name instead of `/dev/sda1`.
